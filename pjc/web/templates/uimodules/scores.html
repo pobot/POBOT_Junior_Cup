@@ -1,0 +1,19 @@
+<table class="table table-striped table-bordered table-condensed scores translucent">
+    <thead>
+    <tr><th rowspan="2">Equipe</th><th colspan="3">Robotique</th><th rowspan="2">Exposé</th><th rowspan="2">Jury</th><th rowspan="2">Bonus âge</th></tr>
+    <tr><th>Epr.1</th><th>Epr.2</th><th>Epr.3</th></tr>
+    </thead>
+    <tbody>
+    {% for item in scores_data %}
+    <tr>
+        <th>{{ item.team.name }}</th>
+        <td>{{ item.score.rob1 }}</td>
+        <td>{{ item.score.rob2 }}</td>
+        <td>{{ item.score.rob3 }}</td>
+        <td>{{ item.score.research }}</td>
+        <td>{{ item.score.jury }}</td>
+        <td>{{ item.team.bonus }}</td>
+    </tr>
+    {% end %}
+    </tbody>
+</table>
