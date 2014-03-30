@@ -100,3 +100,21 @@ class ScoresDisplayHandler(UIRequestHandler):
         return {
             "application": self.application
         }
+
+
+class RankingDisplayHandler(UIRequestHandler):
+    """ Shared request handler for displaying the current ranking report.
+
+    Used by TV display (`pjc.web.tv.TVRanking`) and administration (`pjc.web.admin.AdminRankingReport`) pages.
+    """
+    @property
+    def template_name(self):
+        # depending on the context (TV display or administration application), the template file will be
+        # looked for in the associated directory, and thus can be customized to fit the display needs.
+        return "ranking"
+
+    @property
+    def template_args(self):
+        return {
+            "application": self.application
+        }

@@ -1,7 +1,8 @@
 {% extends "../tv_display.html" %}
 
 {% block page_content %}
-<h1>Scores</h1>
+
+{% module TVDisplayPageTitle("Scores") %}
 
 {% module ScoresTable(application) %}
 

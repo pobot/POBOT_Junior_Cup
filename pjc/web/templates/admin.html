@@ -4,34 +4,38 @@
     <title>{{ title }}</title>
     <link href="/css/bootstrap.min.css" rel="stylesheet" media="screen">
     <link href="/css/pjc-screen.css" rel="stylesheet" media="screen">
+    {% block local_css %}{% end %}
 
     <script src="/js/jquery.min.js" type="text/javascript"></script>
     <script src="/js/bootstrap.min.js" type="text/javascript"></script>
+    <script src="/js/jquery.validate.min.js" type="text/javascript"></script>
     <script src="/js/admin.js" type="text/javascript"></script>
+    {% block local_scripts %}{% end %}
 </head>
 <body>
 <div class="navbar navbar-default">
     <a class="navbar-brand" href="/">POBOT Junior Cup</a>
     <ul class="nav navbar-nav">
-        <li class=""><a href="#">Epreuve 1</a></li>
-        <li class=""><a href="#">Epreuve 2</a></li>
-        <li class=""><a href="#">Epreuve 3</a></li>
-        <li class=""><a href="#">Exposé</a></li>
-        <li class=""><a href="#">Jury</a></li>
+        {% for i in xrange(1, 4) %}
+            <li class=""><a href="/admin/scores/rob{{ i }}">Epreuve {{ i }}</a></li>
+        {% end %}
+        <li class=""><a href="/admin/scores/research">Exposé</a></li>
+        <li class=""><a href="/admin/scores/jury">Jury</a></li>
     </ul>
     <ul class="nav navbar-nav navbar-right">
         <li class="dropdown">
             <a href="#" class="dropdown-toggle" data-toggle="dropdown">Configuration <b class="caret"></b></a>
             <ul class="dropdown-menu">
-                <li><a href="/admin/planning">Planning</a></li>
-                <li><a href="#">Affichage TV</a></li>
+                <li><a href="/admin/settings/planning">Planning</a></li>
+                <li><a href="/admin/settings/tv_display">Affichage TV</a></li>
             </ul>
         </li>
         <li class="dropdown">
             <a href="#" class="dropdown-toggle" data-toggle="dropdown">Rapports <b class="caret"></b></a>
             <ul class="dropdown-menu">
-                <li><a href="/admin/progress">Avancement</a></li>
-                <li><a href="/admin/scores">Scores</a></li>
+                <li><a href="/admin/report/progress">Avancement</a></li>
+                <li><a href="/admin/report/scores">Scores</a></li>
+                <li><a href="/admin/report/ranking">Classement</a></li>
             </ul>
         </li>
         <li id="clock" class="navbar-brand">00:00:00</li>

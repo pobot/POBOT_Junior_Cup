@@ -5,8 +5,8 @@ import httplib
 import json
 import datetime
 
-from pjc.tournament import ResearchScore, JuryScore
-from pjc.web.lib import AppRequestHandler
+from pjc.tournament import ResearchEvaluationScore, TeamEvaluationScore
+from pjc.web.lib import AppRequestHandler, parse_hhmm_time
 
 
 __author__ = 'eric'
@@ -61,7 +61,7 @@ class WSHRoboticsScore(WSHTeamBaseHandler):
 class WSHResearchScore(WSHTeamBaseHandler):
     def get(self, team_num):
         try:
-            score = self.tournament.research_evaluation.scores[team_num]
+            score = self.tournament.research_evaluations.scores[team_num]
             self.write({"score": score.as_dict()})
             self.finish()
         except KeyError:
@@ -69,15 +69,15 @@ class WSHResearchScore(WSHTeamBaseHandler):
 
     def put(self, team_num):
         score_data = json.loads(self.request.body)
-        score = ResearchScore(**score_data)
-        self.tournament.set_research_score(team_num, score)
+        score = ResearchEvaluationScore(**score_data)
+        self.tournament.set_research_evaluation(team_num, score)
         self.application.save_tournament()
 
 
 class WSHJuryScore(WSHTeamBaseHandler):
     def get(self, team_num):
         try:
-            score = self.tournament.jury_evaluation.scores[team_num]
+            score = self.tournament.jury_evaluations.scores[team_num]
             self.write({"score": score.as_dict()})
             self.finish()
         except KeyError:
@@ -85,8 +85,8 @@ class WSHJuryScore(WSHTeamBaseHandler):
 
     def put(self, team_num):
         score_data = json.loads(self.request.body)
-        score = JuryScore(**score_data)
-        self.tournament.set_jury_score(team_num, score)
+        score = TeamEvaluationScore(**score_data)
+        self.tournament.set_team_evaluation(team_num, score)
         self.application.save_tournament()
 
 
@@ -121,12 +121,12 @@ class WSHRoboticsResults(WSHSingleResultsHandler):
 
 class WSHResearchResults(WSHSingleResultsHandler):
     def _get_results(self):
-        return self.tournament.get_research_results()
+        return self.tournament.get_research_evaluation_results()
 
 
 class WSHJuryResults(WSHSingleResultsHandler):
     def _get_results(self):
-        return self.tournament.get_jury_results()
+        return self.tournament.get_team_evaluation_results()
 
 
 class WSHFinalResults(WSHSingleResultsHandler):
@@ -143,7 +143,7 @@ class WSHPlanning(AppRequestHandler):
     def put(self):
         data = json.loads(self.request.body)
         self.tournament.planning = [
-            datetime.datetime.strptime(hhmm, "%H:%M").time() for hhmm in data
+            parse_hhmm_time(hhmm) for hhmm in data
         ]
         self.application.save_tournament()
 

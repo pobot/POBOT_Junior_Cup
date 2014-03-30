@@ -1,10 +1,17 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import datetime
 from collections import namedtuple
+from datetime import timedelta
+from functools import wraps
 
-from pjc.web.ui import UIRequestHandler, ProgressDisplayHandler, ScoresDisplayHandler
+from tornado.web import HTTPError
+
+from pjc.web.ui import UIRequestHandler, ProgressDisplayHandler, ScoresDisplayHandler, RankingDisplayHandler
+from pjc.web.lib import parse_hhmm_time, format_hhmm_time
+import pjc.web.tv
+import pjc.pjc2014 as edition
+from pjc.tournament import ResearchEvaluationScore, TeamEvaluationScore
 
 __author__ = 'eric'
 
@@ -21,6 +28,13 @@ class AdminUIHandler(UIRequestHandler):
         return 'admin'
 
 
+class AdminHome(AdminUIHandler):
+
+    @property
+    def template_name(self):
+        return "home"
+
+
 class AdminProgress(AdminUIHandler, ProgressDisplayHandler):
     """ Administration application home page.
 
@@ -34,8 +48,12 @@ class AdminScoresReport(AdminUIHandler, ScoresDisplayHandler):
     pass
 
 
+class AdminRankingReport(AdminUIHandler, RankingDisplayHandler):
+    pass
+
+
 class AdminPlanningEditor(AdminUIHandler):
-    # TODO to be continued
+    FORM_FIELDS = ('rob1', 'rob2', 'rob3', 'research')
 
     @property
     def template_name(self):
@@ -43,16 +61,236 @@ class AdminPlanningEditor(AdminUIHandler):
 
     @property
     def template_args(self):
+        return dict(
+            zip(
+                self.FORM_FIELDS,
+                [format_hhmm_time(t) for t in self.tournament.planning]
+            )
+        )
+
+    def post(self):
+        times = [
+            parse_hhmm_time(self.get_argument(name)) for name in self.FORM_FIELDS
+        ]
+        self.tournament.planning = times
+        self.application.save_tournament()
+
+
+class TVDisplaySettingsEditor(AdminUIHandler):
+
+    @property
+    def template_name(self):
+        return "tvsettings_editor"
+
+    @property
+    def template_args(self):
         return {
-            "application": self.application
+            'selectable_displays': [
+                (display_name, label, display_name in self.application.display_sequence)
+                for display_name, label in pjc.web.tv.get_selectable_displays()
+            ],
+            'display_pause': pjc.web.tv.SequencedDisplayHandler.get_delay()
         }
 
+    def post(self):
+        self.application.display_sequence = [
+            d for d, _ in pjc.web.tv.get_selectable_displays() if self.get_argument('seq_' + d, None)
+        ]
+        pjc.web.tv.SequencedDisplayHandler.set_delay(int(self.get_argument('display_pause', '5')))
+
+        level, message = (self.get_argument('msg_' + fld) for fld in ('level', 'text'))
+        self.application.tv_message = (level, message) if message else None
+
+
+def MMSS_to_seconds(s):
+    minutes, seconds = s.split(':')
+    return int(minutes) * 60 + int(seconds)
+
+
+def score_editor(score_data_type):
+    """ Decorated concrete descendants of ScoreEditorHandler to configure the data type of associated ScoreData
+    """
+    def decorator(clazz):
+        clazz.score_data_type = score_data_type
+        return clazz
+    return decorator
+
+
+class ScoreEditorHandler(AdminUIHandler):
+    """ The root class for all request handlers used by score editors.
+
+    For making concrete handlers implementation as light as possible, a dynamic configuration of the instances
+    is made based on the definition of the data type used to model the score. This is done in the local version of
+    the `initialize()` method, using the data type provided by descendant classes.
+    """
+
+    # this attribute is set by the `@score_editor` decorator put on concrete classes to configure the data type of
+    # their associated score data
+    score_data_type = None
+
+    # these attributes will be automatically initialized at handler creation time
+    ScoreTemplateData = None
+    score_fields = None
+
+    def initialize(self, *args, **kwargs):
+        if not self.score_data_type:
+            raise NotImplementedError('score_data_type has not be defined in handler class')
+
+        super(ScoreEditorHandler, self).initialize(*args, **kwargs)
+
+        # Define the type of data transmitted to the template as a named tuple with the following characteristics,
+        # composed of the team number and name and the fields provided by the score data type `items` attribute.
+        self.ScoreTemplateData = namedtuple(
+            'ScoreTemplateData', ('team_num', 'team_name') + self.score_data_type.items
+        )
+
+        # Define the list of form fields used to enter the scored points and penalties.
+        # By default, it identical to the score data items.
+        self.score_fields = self.score_data_type.items
+
+    @property
+    def template_name(self):
+        raise NotImplementedError()
+
+    @property
+    def template_args(self):
+        raise NotImplementedError()
+
+    def post(self):
+        raise NotImplementedError()
+
+
+class AdminRoboticsRoundScoreEditor(ScoreEditorHandler):
+    round_num = None
+
+    def initialize(self, *args, **kwargs):
+        super(AdminRoboticsRoundScoreEditor, self).initialize(*args, **kwargs)
+
+        # we need to override the score fields list default definition to exclude the match time
+        self.score_fields = self.score_data_type.items[1:]
+
+    @property
+    def template_name(self):
+        return "scores_editor/rob_%d" % self.round_num
+
+    @property
+    def template_args(self):
+        round_ = self.tournament.get_robotics_round(self.round_num)
+        form_data = []
+        for team_num in self.tournament.team_nums:
+            team_name = self.tournament.get_team(team_num).name
+            try:
+                score = round_.get_team_score(team_num)
+            except KeyError:
+                # team did not played the round yet
+                score = round_.score_type()
+
+            # get the match duration as a "m:ss" string (no tens of minutes)
+            duration = str(timedelta(seconds=score.total_time)).split(':', 1)[-1][1:]
+            form_data.append(self.ScoreTemplateData(team_num, team_name, duration,*(score.as_tuple()[1:])))
+        return {
+            'scores': form_data
+        }
+
+    def post(self):
+        round_ = self.tournament.get_robotics_round(self.round_num)
+        for team_num in self.tournament.team_nums:
+            total_time = MMSS_to_seconds(self.get_argument('total_time_%d' % team_num))
+            if total_time:
+                score = round_.score_type(
+                    total_time=total_time,
+                    **dict((
+                        (arg, int(self.get_argument('%s_%d' % (arg, team_num))))
+                        for arg in self.score_fields
+                    ))
+                )
+                self.tournament.set_robotics_score(team_num, self.round_num, score)
+            else:
+                self.tournament.clear_robotics_score(team_num, self.round_num)
+        self.application.save_tournament()
+
+
+@score_editor(score_data_type=edition.Round1Score)
+class AdminRoboticsRound1ScoreEditor(AdminRoboticsRoundScoreEditor):
+    # this is the score for round number 1
+    round_num = 1
+
+
+@score_editor(score_data_type=edition.Round2Score)
+class AdminRoboticsRound2ScoreEditor(AdminRoboticsRoundScoreEditor):
+    round_num = 2
+
+
+@score_editor(score_data_type=edition.Round3Score)
+class AdminRoboticsRound3ScoreEditor(AdminRoboticsRoundScoreEditor):
+    round_num = 3
+
+
+class EvaluationScoreEditor(ScoreEditorHandler):
+    def get_evaluations(self):
+        raise NotImplementedError()
+
+    @property
+    def template_args(self):
+        evaluations = self.get_evaluations()
+        form_data = []
+        for team_num in self.tournament.team_nums:
+            team_name = self.tournament.get_team(team_num).name
+            try:
+                score = evaluations.get_team_score(team_num)
+            except KeyError:
+                # team did not played the round yet
+                score = evaluations.score_type()
+
+            form_data.append(self.ScoreTemplateData(team_num, team_name, *(score.as_tuple())))
+        return {
+            'scores': form_data
+        }
+
+    def post(self):
+        evaluations = self.get_evaluations()
+        for team_num in self.tournament.team_nums:
+            score = evaluations.score_type(
+                **dict((
+                    (arg, int(self.get_argument('%s_%d' % (arg, team_num))))
+                    for arg in self.score_fields
+                ))
+            )
+            evaluations.add_team_score(team_num, score)
+        self.application.save_tournament()
+
+
+@score_editor(score_data_type=ResearchEvaluationScore)
+class AdminResearchScoreEditor(EvaluationScoreEditor):
+    @property
+    def template_name(self):
+        return "scores_editor/research"
+
+    def get_evaluations(self):
+        return self.tournament.research_evaluations
+
+
+@score_editor(score_data_type=TeamEvaluationScore)
+class AdminJuryScoreEditor(EvaluationScoreEditor):
+    @property
+    def template_name(self):
+        return "scores_editor/jury"
+
+    def get_evaluations(self):
+        return self.tournament._team_evaluations
 
 
 handlers = [
-    (r"/", AdminProgress),
-    (r"/admin/progress", AdminProgress),
-    (r"/admin/scores", AdminScoresReport),
-    (r"/admin/planning", AdminPlanningEditor),
+    (r"/", AdminHome),
+    (r"/admin/report/progress", AdminProgress),
+    (r"/admin/report/scores", AdminScoresReport),
+    (r"/admin/report/ranking", AdminRankingReport),
+    (r"/admin/settings/planning", AdminPlanningEditor),
+    (r"/admin/settings/tv_display", TVDisplaySettingsEditor),
+    (r"/admin/scores/rob1", AdminRoboticsRound1ScoreEditor),
+    (r"/admin/scores/rob2", AdminRoboticsRound2ScoreEditor),
+    (r"/admin/scores/rob3", AdminRoboticsRound3ScoreEditor),
+    (r"/admin/scores/research", AdminResearchScoreEditor),
+    (r"/admin/scores/jury", AdminJuryScoreEditor),
 ]
 

@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
 import httplib
+import datetime
+
 import tornado.web
 from tornado.web import HTTPError
 
@@ -35,3 +38,9 @@ class AppRequestHandler(tornado.web.RequestHandler):
             raise HTTPError(httplib.NOT_FOUND, 'Round not found (%d)' % round_num)
 
 
+def parse_hhmm_time(s):
+    return datetime.datetime.strptime(s, "%H:%M").time()
+
+
+def format_hhmm_time(t):
+    return t.strftime("%H:%M")

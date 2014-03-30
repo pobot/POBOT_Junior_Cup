@@ -60,6 +60,18 @@ class AdminPageTitle(UIModuleBase):
         )
 
 
+class TVDisplayPageTitle(UIModuleBase):
+    @property
+    def template_name(self):
+        return "display_page_title"
+
+    def render(self, title):
+        return self.render_string(
+            self.make_template_path(),
+            title=title
+        )
+
+
 class ProgressTable(UIModuleBase):
     """ Tournament progress table
     """
@@ -141,3 +153,39 @@ class ScoresTable(UIModuleBase):
         return {
             "scores_data": scores_data
         }
+
+
+class RankingTable(UIModuleBase):
+    """ Current ranking table
+    """
+
+    ResultItem = namedtuple('ResultItem', 'rank teams')
+
+    @property
+    def template_name(self):
+        return "ranking"
+
+    def get_template_args(self, application):
+        tournament = application.tournament
+
+        def get_names(teams_nums):
+            return (tournament.get_team(num).name for num in teams_nums)
+
+        ranking = [
+            self.ResultItem(rank, get_names(teams))
+            for rank, teams in tournament.get_final_ranking()
+        ]
+        return {
+            'ranking': ranking
+        }
+
+
+class FormButtons(UIModuleBase):
+    @property
+    def template_name(self):
+        return "form_buttons"
+
+    def render(self):
+        return self.render_string(
+            self.make_template_path()
+        )

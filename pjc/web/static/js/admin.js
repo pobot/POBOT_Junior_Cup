@@ -15,4 +15,37 @@ $(document).ready(function() {
         var now = new Date();
         $("#clock").text(now.toHHMMSS());
     }, 1000);
+
+    $.extend($.validator.messages, {
+        required: "Ce champ est obligatoire",
+        digits: "Entrez une valeur entière positive ou nulle",
+        min: "Entrez une valeur supérieure ou égale à {0}",
+        max: "Entrez une valeur inférieure ou égale à {0}"
+    });
+
+    $.validator.addMethod("HHMM",
+        function(value, element) {
+            return /^([0-1][0-9]|2[0-4]):([0-5][0-9])?$/.test(value);
+        },
+        "Horaire invalide (format attendu: HH:MM)"
+    );
+
+    $.validator.addMethod("match-duration",
+        function(value, element) {
+            return /^[0-2]:[0-5][0-9]$/.test(value) ;
+        },
+        "Entrez une durée comprise entre 0:00 et 2:30"
+    );
+
+    $.validator.setDefaults({
+        highlight: function(element) {
+            $(element).closest('.form-group').addClass('has-error');
+        },
+        unhighlight: function(element) {
+            $(element).closest('.form-group').removeClass('has-error');
+        },
+        errorElement: 'span'
+    });
+
+
 });

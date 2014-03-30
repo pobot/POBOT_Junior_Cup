@@ -19,7 +19,8 @@ from pjc.tournament import Team, Tournament
 from pjc.pjc2014 import *
 from pjc.web import uimodules
 import pjc.web.api
-import pjc.web.tv
+from pjc.web.tv import TVMessage
+
 import pjc.web.admin
 
 
@@ -55,7 +56,8 @@ class PJCWebApp(tornado.web.Application):
 
             (r"/css/(.*)", tornado.web.StaticFileHandler, {"path": os.path.join(_res_home, 'css')}),
             (r"/js/(.*)", tornado.web.StaticFileHandler, {"path": os.path.join(_res_home, 'js')}),
-            (r"/img/(.*)", tornado.web.StaticFileHandler, {"path": os.path.join(_res_home, 'img')})
+            (r"/img/(.*)", tornado.web.StaticFileHandler, {"path": os.path.join(_res_home, 'img')}),
+            (r"/docs/(.*)", tornado.web.StaticFileHandler, {"path": os.path.join(_res_home, 'docs')})
         ]
 
     def __init__(self, settings_override):
@@ -162,10 +164,23 @@ class PJCWebApp(tornado.web.Application):
     @tv_message.setter
     def tv_message(self, msg):
         self._tv_message = msg
+        self._update_display_sequence()
 
     @tv_message.deleter
     def tv_message(self):
         self._tv_message = None
+        self._update_display_sequence()
+
+    def _update_display_sequence(self):
+        """ Updates the display sequence depending on the presence of a message to be displayed.
+        """
+        if self.tv_message:
+            if TVMessage.display_name not in self.display_sequence:
+                self.display_sequence.insert(0, TVMessage.display_name)
+        else:
+            if TVMessage.display_name in self.display_sequence:
+                self.display_sequence.remove(TVMessage.display_name)
+
 
     @property
     def tournament(self):
@@ -217,12 +232,9 @@ if __name__ == '__main__':
         # expands the display_sequence if the keyword "all" has been used (debug mode only)
         if cli_args.display_sequence == "all":
             if cli_args.debug:
-                page_list = []
-                for url, cls in [url_spec[:2] for url_spec in PJCWebApp.handlers]:
-                    if issubclass(cls, pjc.web.tv.SequencedDisplayHandler):
-                        page_list.append(url.strip('/').split('/')[-1])
-                cli_args.display_sequence = json.dumps(page_list)
-                log.warn('"--display-sequence all" option used. Page sequence expanded to : %s' % page_list)
+                displays = [d for d, _ in pjc.web.tv.get_selectable_displays()]
+                cli_args.display_sequence = json.dumps(displays)
+                log.warn('"--display-sequence all" option used. Sequence expanded to : %s' % displays)
             else:
                 parser.exit(1, "'--display-sequence all' is allowed in debug mode only.")
 

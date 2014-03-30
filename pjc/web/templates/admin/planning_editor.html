@@ -1,7 +1,41 @@
 {% extends "../admin.html" %}
 
+{% block local_css %}
+{% end %}
+
+{% block local_scripts %}
+<script src="/js/planning_editor.js" type="text/javascript"></script>
+{% end %}
+
 {% block page_content %}
 
 {% module AdminPageTitle("Planning de la compétition") %}
+
+<form id="planning" role="form" class="form-horizontal">
+    <fieldset>
+        <legend>Heures limites</legend>
+        {% for fld, label, value in (
+            ('rob1', 'Epreuve robotique 1', rob1),
+            ('rob2', 'Epreuve robotique 2', rob2),
+            ('rob3', 'Epreuve robotique 3', rob3),
+            ('research', 'Exposé', research)) %}
+            <div class="form-group">
+                <label for="{{ fld }}" class="col-md-5 control-label">{{ label }}</label>
+
+                <div class="col-md-2">
+                    <input class="form-control HHMM" id="{{ fld }}" name="{{ fld }}"
+                           placeholder="HH:MM" style="text-align:center"
+                           type="text" required value="{{value}}">
+                </div>
+                <label id="msg_{{fld}}" class="control-label"></label>
+            </div>
+        {% end %}
+
+        {% module FormButtons() %}
+    </fieldset>
+</form>
+
+<div id="feedback" class="alert">
+</div>
 
 {% end %}

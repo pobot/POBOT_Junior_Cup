@@ -10,18 +10,7 @@ table.final-ranking {
     font-size: 120%;
 }
 
-table.final-ranking td, th {
-    vertical-align: top;
-}
-
-table.final-ranking th {
-    text-align: center;
-}
-
-table.final-ranking tr:first-child {
-    color: yellow;
-}
-
 h1 {
     text-transform: uppercase;
+    text-align: center;
 }

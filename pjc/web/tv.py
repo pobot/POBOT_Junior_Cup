@@ -5,14 +5,12 @@
 """
 
 from collections import namedtuple
-import json
 from operator import itemgetter
-import datetime
+import json
 import tornado.web
 import httplib
 
-from pjc.tournament import Tournament
-from pjc.web.ui import UIRequestHandler, ProgressDisplayHandler, ScoresDisplayHandler
+from pjc.web.ui import UIRequestHandler, ProgressDisplayHandler, ScoresDisplayHandler, RankingDisplayHandler
 
 __author__ = 'eric'
 
@@ -41,13 +39,23 @@ class SequencedDisplayHandler(TVDisplayHandler):
     must be changed for a given display.
     """
 
+    # tells if this display can be selected in the TV display settings form
+    is_selectable = True
+
+    # default display delay
+    _delay = 5
+
     @classmethod
     def get_delay(cls):
         """ Defines the delay before showing next display.
 
         Override in subclasses if you need a different delay for a given display.
         """
-        return 5;
+        return cls._delay
+
+    @classmethod
+    def set_delay(cls, delay):
+        cls._delay = delay
 
     def render(self, template_name, **kwargs):
         # if a display sequence is defined, insert the appropriate header to chain the pages
@@ -63,30 +71,13 @@ class TVScores(SequencedDisplayHandler, ScoresDisplayHandler):
 
     Used the progression report generator shared with the administration application.
     """
-    pass
+    display_label = "Scores"
 
 
-class TVRanking(SequencedDisplayHandler):
+class TVRanking(SequencedDisplayHandler, RankingDisplayHandler):
     """ Request handler for displaying the tournament final ranking.
     """
-    ResultItem = namedtuple('ResultItem', 'team score')
-
-    @property
-    def template_name(self):
-        return "ranking"
-
-    @property
-    def template_args(self):
-        def get_names(teams_nums):
-            return (self.tournament.get_team(num).name for num in teams_nums)
-
-        ranking = [
-            self.ResultItem(rank, get_names(teams))
-            for rank, teams in self.tournament.get_final_ranking()
-        ]
-        return {
-            'ranking': ranking
-        }
+    display_label = "Classement"
 
 
 class TVProgress(SequencedDisplayHandler, ProgressDisplayHandler):
@@ -94,7 +85,7 @@ class TVProgress(SequencedDisplayHandler, ProgressDisplayHandler):
 
     Used the progression report generator shared with the administration application.
     """
-    pass
+    display_label = "Avancement"
 
 
 class TVMessage(SequencedDisplayHandler):
@@ -106,7 +97,11 @@ class TVMessage(SequencedDisplayHandler):
         - PUT : set the message to be displayed and its level
         - DELETE : remove the current message
     """
-    REL_PATH = 'message'
+
+    # this display is managed and cannot be manually selected
+    is_selectable = False
+
+    display_name = 'message'
 
     @property
     def template_name(self):
@@ -123,21 +118,9 @@ class TVMessage(SequencedDisplayHandler):
 
     def put(self):
         self.application.tv_message = json.loads(self.request.body)
-        self._update_display_sequence()
 
     def delete(self):
         del self.application.tv_message
-        self._update_display_sequence()
-
-    def _update_display_sequence(self, msg):
-        """ Updates the display sequence depending on the presence of a message to be displayed.
-        """
-        if self.application.tv_message:
-            if self.REL_PATH not in self.application.display_sequence:
-                self.application.display_sequence.insert(0, self.REL_PATH)
-        else:
-            if self.REL_PATH in self.application.display_sequence:
-                self.application.display_sequence.remove(self.REL_PATH)
 
 
 class TVStart(tornado.web.RequestHandler):
@@ -153,6 +136,13 @@ class TVStart(tornado.web.RequestHandler):
             self.send_error(httplib.NOT_FOUND)
 
 
+def get_selectable_displays():
+    displays = []
+    for url, cls in [url_spec[:2] for url_spec in handlers]:
+        if issubclass(cls, SequencedDisplayHandler) and cls.is_selectable:
+            displays.append((url.strip('/').split('/')[-1], cls.display_label))
+    return sorted(displays, key=itemgetter(1))
+
 handlers = [
     (r"/tv/scores", TVScores),
     (r"/tv/results", TVRanking),
@@ -160,3 +150,4 @@ handlers = [
     (r"/tv/progress", TVProgress),
     (r"/tv[/]?", TVStart),
 ]
+

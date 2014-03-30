@@ -17,24 +17,24 @@ class Round1Score(RoboticsScore):
       - penalties for moved buoys
       - time bonus when mission fulfilled
     """
-    items = RoboticsScore.items + ('_alignments', '_dockings', '_hits')
+    items = RoboticsScore.items + ('alignments', 'dockings', 'hits')
 
-    _alignments = 0
-    _dockings = 0
-    _hits = 0
+    alignments = 0
+    dockings = 0
+    hits = 0
 
-    def __init__(self, total_time, alignments, dockings, hits):
+    def __init__(self, total_time=0, alignments=0, dockings=0, hits=0):
         super(Round1Score, self).__init__(total_time)
-        self._alignments = alignments
-        self._dockings = dockings
-        self._hits = hits
+        self.alignments = alignments
+        self.dockings = dockings
+        self.hits = hits
 
     @classmethod
     def max_action_credits(cls):
         return 10
 
     def evaluate_action_credits(self):
-        return self._alignments + self._dockings - self._hits
+        return self.alignments + self.dockings - self.hits
 
 
 class Round2Score(Round1Score):
@@ -47,22 +47,22 @@ class Round2Score(Round1Score):
       - penalties for moved buoys or wrong channel selection
       - time bonus when mission fulfilled
     """
-    items = Round1Score.items + ('_channels_ok', '_channels_ko')
+    items = Round1Score.items + ('channels_ok', 'channels_wrong')
 
-    _channels_ok = 0
-    _channels_ko = 0
+    channels_ok = 0
+    channels_wrong = 0
 
-    def __init__(self, total_time, alignments, dockings, hits, channels_ok, channels_ko):
+    def __init__(self, total_time=0, alignments=0, dockings=0, hits=0, channels_ok=0, channels_wrong=0):
         super(Round2Score, self).__init__(total_time, alignments, dockings, hits)
-        self._channels_ok = channels_ok
-        self._channels_ko = channels_ko
+        self.channels_ok = channels_ok
+        self.channels_wrong = channels_wrong
 
     @classmethod
     def max_action_credits(cls):
         return 20
 
     def evaluate_action_credits(self):
-        return super(Round2Score, self).evaluate_action_credits() + 5 * (self._channels_ok - self._channels_ko)
+        return super(Round2Score, self).evaluate_action_credits() + 5 * (self.channels_ok - self.channels_wrong)
 
 
 class Round3Score(RoboticsScore):
@@ -73,19 +73,19 @@ class Round3Score(RoboticsScore):
       - penalties for buoys stored on the wrong side
       - time bonus when mission fulfilled
     """
-    items = RoboticsScore.items + ('_buoys_ok', '_buoys_wrong')
+    items = RoboticsScore.items + ('buoys_ok', 'buoys_wrong')
 
-    _buoys_ok = 0
-    _buoys_wrong = 0
+    buoys_ok = 0
+    buoys_wrong = 0
 
-    def __init__(self, total_time, buoys_ok, buoys_wrong):
+    def __init__(self, total_time=0, buoys_ok=0, buoys_wrong=0):
         super(Round3Score, self).__init__(total_time)
-        self._buoys_ok = buoys_ok
-        self._buoys_wrong = buoys_wrong
+        self.buoys_ok = buoys_ok
+        self.buoys_wrong = buoys_wrong
 
     @classmethod
     def max_action_credits(cls):
         return 6
 
     def evaluate_action_credits(self):
-        return self._buoys_ok - self._buoys_wrong
+        return self.buoys_ok - self.buoys_wrong
