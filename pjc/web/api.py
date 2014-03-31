@@ -5,7 +5,7 @@ import httplib
 import json
 import datetime
 
-from pjc.tournament import ResearchEvaluationScore, TeamEvaluationScore
+from pjc.tournament import ResearchEvaluationScore, JuryEvaluationScore
 from pjc.web.lib import AppRequestHandler, parse_hhmm_time
 
 
@@ -85,8 +85,8 @@ class WSHJuryScore(WSHTeamBaseHandler):
 
     def put(self, team_num):
         score_data = json.loads(self.request.body)
-        score = TeamEvaluationScore(**score_data)
-        self.tournament.set_team_evaluation(team_num, score)
+        score = JuryEvaluationScore(**score_data)
+        self.tournament.set_jury_evaluation(team_num, score)
         self.application.save_tournament()
 
 
