@@ -5,7 +5,6 @@
 """
 __author__ = 'eric'
 
-import cPickle as pickle
 import os
 import logging
 import json
@@ -32,6 +31,8 @@ class PJCWebApp(tornado.web.Application):
     """
     TOURNAMENT_DAT = 'tournament.dat'
     TEAMS_CFG = 'teams.cfg'
+
+    ROBOTICS_ROUND_TYPES = (Round1Score, Round2Score, Round3Score)
 
     _res_home = os.path.join(_here, "web/static")
     _templates_home = os.path.join(_here, "web/templates")
@@ -93,23 +94,21 @@ class PJCWebApp(tornado.web.Application):
         self._tv_message = None
 
         # try to load a previously saved tournament if any, or create a new one otherwise
-        if not self._load_tournament():
-            self._tournament = self._create_tournament()
+        self._tournament = Tournament(self.ROBOTICS_ROUND_TYPES)
+        if not self._load_tournament(self._tournament):
+            self._initialize_tournament(self._tournament)
 
         super(PJCWebApp, self).__init__(self.handlers, **settings)
 
-    def _create_tournament(self):
-        """ Creates a new tournament instance, loading the teams definition if the related configuration
+    def _initialize_tournament(self, tournament):
+        """ Initializes a new tournament instance, loading the teams definition if the related configuration
         file exists
 
         :return: a Tournament instance
-        :rtype: Tournament
         """
-        tournament = Tournament((Round1Score, Round2Score, Round3Score))
-
         teams_cfg = os.path.join(self._data_home, self.TEAMS_CFG)
         if os.path.exists(teams_cfg):
-            self.log.info('loading teams configuration from %s...' % teams_cfg)
+            self.log.info('loading teams configuration from %s' % teams_cfg)
             with file(teams_cfg, 'rt') as fp:
                 teams_cfg = json.load(fp)
                 for name, level in teams_cfg:
@@ -118,19 +117,17 @@ class PJCWebApp(tornado.web.Application):
         else:
             self.log.warn('no team configuration found in %s' % self._data_home)
 
-        return tournament
-
     @property
     def _tournament_file_path(self):
         return os.path.join(self._data_home, self.TOURNAMENT_DAT)
 
-    def _load_tournament(self):
-        self.log.info('loading tournament from %s...', self._tournament_file_path)
+    def _load_tournament(self, tournament):
+        self.log.info('loading tournament from %s', self._tournament_file_path)
         try:
             with file(self._tournament_file_path, 'rb') as fp:
-                self._tournament = pickle.load(fp)
-        except Exception:
-            self.log.error('failed')
+                tournament.from_dict(json.load(fp))
+        except Exception as e:
+            self.log.error('failed (%s)' % e)
             return False
         else:
             self.log.info('done')
@@ -140,7 +137,7 @@ class PJCWebApp(tornado.web.Application):
         """ Saves the tournament to disk.
         """
         with file(self._tournament_file_path, 'wb') as fp:
-            pickle.dump(self._tournament, fp)
+            json.dump(self._tournament.as_dict(), fp, indent=4)
             self.log.info('tournament saved to %s' % self._tournament_file_path)
 
     def reset_tournament(self):

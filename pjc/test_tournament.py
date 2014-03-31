@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from unittest import TestCase
+import json
 
 from pjc.tournament import *
 from pjc.pjc2014 import *
@@ -119,9 +120,18 @@ class TestTournament(TestCase):
     ]
 
     SCORES_RESEARCH = [
-        (1, ResearchEvaluationScore(15, 17, 12, 18)),
-        (3, ResearchEvaluationScore(10, 15, 14, 17)),
-        (5, ResearchEvaluationScore(18, 17, 16, 14))
+        (1, ResearchEvaluationScore(True, 15, 17, 12, 18)),
+        (3, ResearchEvaluationScore(True, 10, 15, 14, 17)),
+        (4, ResearchEvaluationScore(False)),
+        (5, ResearchEvaluationScore(True, 18, 17, 16, 14))
+    ]
+
+    JURY_EVALUATION = [
+        (1, JuryEvaluationScore(18)),
+        (2, JuryEvaluationScore(15)),
+        (3, JuryEvaluationScore(16)),
+        (4, JuryEvaluationScore(16)),
+        (5, JuryEvaluationScore(16))
     ]
 
     def setUp(self):
@@ -136,6 +146,9 @@ class TestTournament(TestCase):
         for team_num, score in self.SCORES_RESEARCH:
             self._tournament.set_research_evaluation(team_num, score)
 
+        for team_num, score in self.JURY_EVALUATION:
+            self._tournament.set_jury_evaluation(team_num, score)
+
     def test_get_teams(self):
         self.assertEqual(self._tournament.team_count, len(self.TEAMS))
 
@@ -146,8 +159,7 @@ class TestTournament(TestCase):
         self.assertFalse(all(status.robotics[2]))
         self.assertFalse(status.robotics[2][2])
         self.assertFalse(status.robotics[2][4])
-        self.assertFalse(status.research[1])
-        self.assertFalse(status.research[3])
+        self.assertTupleEqual(status.research, (True, False, True, True, True))
 
     def test_get_global_result(self):
         print('* robotics rounds teams results : ')
@@ -165,4 +177,36 @@ class TestTournament(TestCase):
         res = self._tournament.get_final_ranking()
         print('* tournament final ranking :')
         print(res)
-        self.assertEqual(res, [(1, [1]), (2, [5]), (3, [3, 4]), (5, [2])])
+        self.assertEqual(res, [(1, [1]), (2, [4, 5]), (4, [3]), (5, [2])])
+
+    def test_json_persistence(self):
+        with file('/tmp/tournament.json', 'wt') as fp:
+            json.dump(self._tournament.as_dict(), fp, indent=4)
+
+        with file('/tmp/tournament.json', 'rt') as fp:
+            d = json.load(fp)
+        t = Tournament(self._tournament._robotics_score_types)
+        t.from_dict(d)
+
+        self.assertEqual(t.planning, self._tournament.planning)
+        self.assertEqual(t.teams, self._tournament.teams)
+
+        s1 = t.research_evaluations.scores
+        s2 = self._tournament.research_evaluations.scores
+        self.assertEqual(len(s1), len(s1))
+        for team_num, score in s2.iteritems():
+            self.assertDictEqual(score.as_dict(), s2[team_num].as_dict())
+
+        s1 = t.jury_evaluations.scores
+        s2 = self._tournament.jury_evaluations.scores
+        self.assertEqual(len(s1), len(s1))
+        for team_num, score in s2.iteritems():
+            self.assertDictEqual(score.as_dict(), s2[team_num].as_dict())
+
+        self.assertEqual(len(t.get_robotics_rounds()), len(self._tournament.get_robotics_rounds()))
+        for round1, round2 in zip(t.get_robotics_rounds(), self._tournament.get_robotics_rounds()):
+            s1 = round1.scores
+            s2 = round2.scores
+            self.assertEqual(len(s1), len(s1))
+            for team_num, score in s2.iteritems():
+                self.assertDictEqual(score.as_dict(), s2[team_num].as_dict())

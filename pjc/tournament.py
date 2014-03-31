@@ -103,16 +103,17 @@ class RoboticsScore(Score):
 
 
 class ResearchEvaluationScore(Score):
-    items = ('topic', 'research', 'presentation', 'poster')
+    items = ('shown', 'topic', 'research', 'presentation', 'poster')
 
-    def __init__(self, topic=0, research=0, presentation=0, poster=0):
-        self.topic, self.research, self.presentation, self.poster = topic, research, presentation, poster
+    def __init__(self, shown=False, topic=0, research=0, presentation=0, poster=0):
+        self.shown, self.topic, self.research, self.presentation, self.poster = \
+            shown, topic, research, presentation, poster
 
     def evaluate(self):
-        return sum(getattr(self, attr) for attr in self.items)
+        return sum(getattr(self, attr) for attr in self.items[1:]) if self.shown else 0;
 
 
-class TeamEvaluationScore(Score):
+class JuryEvaluationScore(Score):
     items = ('evaluation',)
 
     def __init__(self, evaluation=0):
@@ -149,7 +150,7 @@ class Round(object):
         else:
             raise ValueError('score cannot be None')
 
-    def clear_score(self, team_number):
+    def clear_team_score(self, team_number):
         assert isinstance(team_number, int)
         try:
             del self._scores[team_number]
@@ -203,6 +204,9 @@ class Round(object):
         """ Returns the score of the team for this round, or raises a KeyError exception of not available.
         """
         return self._scores[team_number]
+
+    def as_dict(self):
+        return dict([(team_num, score.as_dict()) for team_num, score in self._scores.iteritems()])
 
 
 def get_ranking_points(score_points, team_count):
@@ -293,12 +297,13 @@ class Tournament(object):
     """
 
     def __init__(self, robotics_score_types):
+        self._robotics_score_types = robotics_score_types
         self._teams = []
         self._team_count = 0
         self._team_numbers = []
         self._robotics_rounds = [Round(score_type) for score_type in robotics_score_types]
         self._research_evaluations = Round(ResearchEvaluationScore)
-        self._team_evaluations = Round(TeamEvaluationScore)
+        self._jury_evaluations = Round(JuryEvaluationScore)
         self._planning = [
             datetime.time(14, 30),
             datetime.time(15, 45),
@@ -372,7 +377,7 @@ class Tournament(object):
 
     @property
     def jury_evaluations(self):
-        return self._team_evaluations
+        return self._jury_evaluations
 
     def get_robotics_rounds(self):
         return self._robotics_rounds
@@ -395,7 +400,7 @@ class Tournament(object):
 
     def clear_robotics_score(self, team_num, round_num):
         assert round_num in range(1, len(self._robotics_rounds) + 1)
-        self._robotics_rounds[round_num - 1].clear_score(team_num)
+        self._robotics_rounds[round_num - 1].clear_team_score(team_num)
 
     def get_research_evaluation(self, team_num):
         return self._research_evaluations.get_team_score(team_num)
@@ -409,21 +414,21 @@ class Tournament(object):
         self._research_evaluations.add_team_score(team_num, score)
 
     def clear_research_evaluation(self, team_num):
-        self._research_evaluations.clear_score(team_num)
+        self._research_evaluations.clear_team_score(team_num)
 
-    def get_team_evaluation(self, team_num):
-        return self._team_evaluations.get_team_score(team_num)
+    def get_jury_evaluation(self, team_num):
+        return self._jury_evaluations.get_team_score(team_num)
 
-    def set_team_evaluation(self, team_num, score):
+    def set_jury_evaluation(self, team_num, score):
         """ Set the score given by the jury.
 
         :param int team_num: the team number
         :param Score score: the score
         """
-        self._team_evaluations.add_team_score(team_num, score)
+        self._jury_evaluations.add_team_score(team_num, score)
 
-    def clear_team_evaluation(self, team_num):
-        self._team_evaluations.clear_score(team_num)
+    def clear_jury_evaluation(self, team_num):
+        self._jury_evaluations.clear_team_score(team_num)
 
     Status = namedtuple('TournamentStatus', 'robotics research jury_eval')
 
@@ -447,7 +452,7 @@ class Tournament(object):
         robotics = tuple(robotics)
 
         research = tuple(n in self._research_evaluations.get_completed_teams() for n in self.team_nums)
-        jury_evaluation = tuple(n in self._team_evaluations.get_completed_teams() for n in self.team_nums)
+        jury_evaluation = tuple(n in self._jury_evaluations.get_completed_teams() for n in self.team_nums)
 
         return Tournament.Status(robotics, research, jury_evaluation)
 
@@ -483,7 +488,7 @@ class Tournament(object):
 
         It is returned as a dictionary of RoundScorePoints, keyed by the team number
         """
-        return self._team_evaluations.get_results(self.team_count)
+        return self._jury_evaluations.get_results(self.team_count)
 
     def get_teams_bonus(self):
         """ Returns the list of teams bonus.
@@ -513,7 +518,7 @@ class Tournament(object):
         for team_num, score in self._research_evaluations.scores.iteritems():
             team_scores = get_team_scores(team_num)
             team_scores['research'] = score.evaluate()
-        for team_num, score in self._team_evaluations.scores.iteritems():
+        for team_num, score in self._jury_evaluations.scores.iteritems():
             team_scores = get_team_scores(team_num)
             team_scores['jury'] = score.evaluate()
 
@@ -568,3 +573,39 @@ class Tournament(object):
             rank += 1
 
         return result
+
+    def as_dict(self):
+        d = dict()
+
+        d['teams'] = self._teams
+        d['planning'] = [str(t) for t in self._planning]
+        d['robotics_rounds'] = [r.as_dict() for r in self._robotics_rounds]
+        d['research_evaluations'] = self._research_evaluations.as_dict()
+        d['jury_evaluations'] = self._jury_evaluations.as_dict()
+
+        return d
+
+    def from_dict(self, d):
+        self.load_teams(d['teams'])
+
+        self.planning = [datetime.datetime.strptime(s, "%H:%M:%S").time() for s in d['planning']]
+
+        self._robotics_rounds = []
+        rounds_dict = d['robotics_rounds']
+        for round_num, score_type in enumerate(self._robotics_score_types, start=1):
+            round_ = Round(score_type)
+            scores = rounds_dict[round_num - 1]
+            for team_num, score_dict in scores.iteritems():
+                score = score_type(**score_dict)
+                round_.add_team_score(int(team_num), score)
+            self._robotics_rounds.append(round_)
+
+        for team_num, score_dict in d['research_evaluations'].iteritems():
+            score = ResearchEvaluationScore(**score_dict)
+            self._research_evaluations.add_team_score(int(team_num), score)
+
+        for team_num, score_dict in d['jury_evaluations'].iteritems():
+            score = JuryEvaluationScore(**score_dict)
+            self._jury_evaluations.add_team_score(int(team_num), score)
+
+
