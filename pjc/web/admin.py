@@ -11,7 +11,7 @@ from pjc.web.ui import UIRequestHandler, ProgressDisplayHandler, ScoresDisplayHa
 from pjc.web.lib import parse_hhmm_time, format_hhmm_time
 import pjc.web.tv
 import pjc.pjc2014 as edition
-from pjc.tournament import ResearchEvaluationScore, TeamEvaluationScore
+from pjc.tournament import ResearchEvaluationScore, JuryEvaluationScore
 
 __author__ = 'eric'
 
@@ -107,11 +107,17 @@ def MMSS_to_seconds(s):
     return int(minutes) * 60 + int(seconds)
 
 
-def score_editor(score_data_type):
-    """ Decorated concrete descendants of ScoreEditorHandler to configure the data type of associated ScoreData
+def score_editor(score_data_type, template_name=None):
+    """ Decorates concrete descendants of ScoreEditorHandler to configure the data type of associated ScoreData
+
+    :param type score_data_type: the data type of the `ScoreData` instance manipulated the decorated editor
+    :param str template_name: the name (with related path if needed) of the editor HTML template. If None, it up to the
+        class to return the information as a property or an attribute named `template_name`
     """
     def decorator(clazz):
         clazz.score_data_type = score_data_type
+        if template_name:
+            clazz.template_name = template_name
         return clazz
     return decorator
 
@@ -160,7 +166,22 @@ class ScoreEditorHandler(AdminUIHandler):
         raise NotImplementedError()
 
 
+def robotics_score_editor(score_data_type, round_num):
+    """ Decorates concrete descendants of ScoreEditorHandler for robotics round score editors
+
+    :param type score_data_type: the data type of the `ScoreData` instance manipulated the decorated editor
+    :param int round_num: the number of the involved round, used to identify the associated HTML template
+    """
+    def decorator(clazz):
+        clazz.score_data_type = score_data_type
+        clazz.round_num = round_num
+        clazz.template_name = "scores_editor/rob_%d" % round_num
+        return clazz
+    return decorator
+
+
 class AdminRoboticsRoundScoreEditor(ScoreEditorHandler):
+    # this attribute is set by the `@robotics_score_editor` decorator put on concrete classes
     round_num = None
 
     def initialize(self, *args, **kwargs):
@@ -168,10 +189,6 @@ class AdminRoboticsRoundScoreEditor(ScoreEditorHandler):
 
         # we need to override the score fields list default definition to exclude the match time
         self.score_fields = self.score_data_type.items[1:]
-
-    @property
-    def template_name(self):
-        return "scores_editor/rob_%d" % self.round_num
 
     @property
     def template_args(self):
@@ -210,20 +227,19 @@ class AdminRoboticsRoundScoreEditor(ScoreEditorHandler):
         self.application.save_tournament()
 
 
-@score_editor(score_data_type=edition.Round1Score)
+@robotics_score_editor(score_data_type=edition.Round1Score, round_num=1)
 class AdminRoboticsRound1ScoreEditor(AdminRoboticsRoundScoreEditor):
-    # this is the score for round number 1
-    round_num = 1
+    """ Editor for robotics rounds 1 scores."""
 
 
-@score_editor(score_data_type=edition.Round2Score)
+@robotics_score_editor(score_data_type=edition.Round2Score, round_num=2)
 class AdminRoboticsRound2ScoreEditor(AdminRoboticsRoundScoreEditor):
-    round_num = 2
+    """ Editor for robotics rounds 2 scores."""
 
 
-@score_editor(score_data_type=edition.Round3Score)
+@robotics_score_editor(score_data_type=edition.Round3Score, round_num=3)
 class AdminRoboticsRound3ScoreEditor(AdminRoboticsRoundScoreEditor):
-    round_num = 3
+    """ Editor for robotics rounds 3 scores."""
 
 
 class EvaluationScoreEditor(ScoreEditorHandler):
@@ -260,24 +276,38 @@ class EvaluationScoreEditor(ScoreEditorHandler):
         self.application.save_tournament()
 
 
-@score_editor(score_data_type=ResearchEvaluationScore)
+@score_editor(score_data_type=ResearchEvaluationScore, template_name="scores_editor/research")
 class AdminResearchScoreEditor(EvaluationScoreEditor):
-    @property
-    def template_name(self):
-        return "scores_editor/research"
-
     def get_evaluations(self):
         return self.tournament.research_evaluations
 
+    def post(self):
+        shown_fld = self.score_fields[0]
+        evaluation_fields = self.score_fields[1:]
 
-@score_editor(score_data_type=TeamEvaluationScore)
+        evaluations = self.get_evaluations()
+        for team_num in self.tournament.team_nums:
+            shown = self.get_argument('%s_%d' % (shown_fld, team_num), None) is not None
+            if shown:
+                score = evaluations.score_type(
+                    **dict(
+                        [(shown_fld, True)] +
+                        [
+                            (arg, int(self.get_argument('%s_%d' % (arg, team_num))))
+                            for arg in evaluation_fields
+                        ]
+                    )
+                )
+                evaluations.add_team_score(team_num, score)
+            else:
+                evaluations.clear_team_score(team_num)
+        self.application.save_tournament()
+
+
+@score_editor(score_data_type=JuryEvaluationScore, template_name="scores_editor/jury")
 class AdminJuryScoreEditor(EvaluationScoreEditor):
-    @property
-    def template_name(self):
-        return "scores_editor/jury"
-
     def get_evaluations(self):
-        return self.tournament._team_evaluations
+        return self.tournament.jury_evaluations
 
 
 handlers = [
