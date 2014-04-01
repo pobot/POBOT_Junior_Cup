@@ -4,6 +4,8 @@
 """ This module gathers request handlers for features related to the information screen displays.
 """
 
+#TODO change page chaining to Ajax based mechanism (need to handle gracefully server interruption)
+
 from collections import namedtuple
 from operator import itemgetter
 import json
