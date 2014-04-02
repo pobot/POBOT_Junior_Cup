@@ -3,9 +3,6 @@
 
 from collections import namedtuple
 from datetime import timedelta
-from functools import wraps
-
-from tornado.web import HTTPError
 
 from pjc.web.ui import UIRequestHandler, ProgressDisplayHandler, ScoresDisplayHandler, RankingDisplayHandler
 from pjc.web.lib import parse_hhmm_time, format_hhmm_time
@@ -89,14 +86,14 @@ class TVDisplaySettingsEditor(AdminUIHandler):
                 (display_name, label, display_name in self.application.display_sequence)
                 for display_name, label in pjc.web.tv.get_selectable_displays()
             ],
-            'display_pause': pjc.web.tv.SequencedDisplayHandler.get_delay()
+            'display_pause': pjc.web.tv.SequencedDisplay.get_delay()
         }
 
     def post(self):
         self.application.display_sequence = [
             d for d, _ in pjc.web.tv.get_selectable_displays() if self.get_argument('seq_' + d, None)
         ]
-        pjc.web.tv.SequencedDisplayHandler.set_delay(int(self.get_argument('display_pause', '5')))
+        pjc.web.tv.SequencedDisplay.set_delay(int(self.get_argument('display_pause', '5')))
 
         level, message = (self.get_argument('msg_' + fld) for fld in ('level', 'text'))
         self.application.tv_message = (level, message) if message else None
@@ -142,7 +139,7 @@ class ScoreEditorHandler(AdminUIHandler):
         if not self.score_data_type:
             raise NotImplementedError('score_data_type has not be defined in handler class')
 
-        super(ScoreEditorHandler, self).initialize(*args, **kwargs)
+        super(ScoreEditorHandler, self).initialize()
 
         # Define the type of data transmitted to the template as a named tuple with the following characteristics,
         # composed of the team number and name and the fields provided by the score data type `items` attribute.

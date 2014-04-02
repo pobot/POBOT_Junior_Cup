@@ -18,8 +18,7 @@ from pjc.tournament import Team, Tournament
 from pjc.pjc2014 import *
 from pjc.web import uimodules
 import pjc.web.api
-from pjc.web.tv import TVMessage
-
+import pjc.web.tv
 import pjc.web.admin
 
 
@@ -147,7 +146,7 @@ class PJCWebApp(tornado.web.Application):
             os.remove(self.TOURNAMENT_DAT)
         except OSError:
             pass
-        self._create_tournament()
+        self._initialize_tournament(self._tournament)
         self.log.info('tournament cleared')
 
     @property
@@ -161,23 +160,10 @@ class PJCWebApp(tornado.web.Application):
     @tv_message.setter
     def tv_message(self, msg):
         self._tv_message = msg
-        self._update_display_sequence()
 
     @tv_message.deleter
     def tv_message(self):
         self._tv_message = None
-        self._update_display_sequence()
-
-    def _update_display_sequence(self):
-        """ Updates the display sequence depending on the presence of a message to be displayed.
-        """
-        if self.tv_message:
-            if TVMessage.display_name not in self.display_sequence:
-                self.display_sequence.insert(0, TVMessage.display_name)
-        else:
-            if TVMessage.display_name in self.display_sequence:
-                self.display_sequence.remove(TVMessage.display_name)
-
 
     @property
     def tournament(self):

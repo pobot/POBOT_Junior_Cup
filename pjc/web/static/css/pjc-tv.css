@@ -14,3 +14,7 @@ h1 {
     text-transform: uppercase;
     text-align: center;
 }
+
+div.message-box {
+    margin-top: 150px;
+}

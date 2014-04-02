@@ -3,7 +3,6 @@
 
 import os.path
 from collections import namedtuple
-import datetime
 
 from pjc.web.lib import AppRequestHandler
 

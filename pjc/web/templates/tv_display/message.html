@@ -1,7 +1,5 @@
-{% extends "../tv_display.html" %}
-
-{% block page_content %}
-<div class="row">
+{% set level, content = application.tv_message %}
+<div class="row message-box">
     <div class="col-md-8 col-md-offset-2">
         <div class="panel panel-{{level}}">
             <div class="panel-heading">
@@ -20,4 +18,3 @@
         </div>
     </div>
 </div>
-{% end %}
