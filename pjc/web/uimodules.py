@@ -76,7 +76,7 @@ class ProgressTable(UIModuleBase):
     """ Tournament progress table
     """
     Planning = namedtuple('Planning', 'rob1 rob2 rob3 research')
-    Status = namedtuple('Status', 'team rob1 rob2 rob3 research')
+    Status = namedtuple('Status', 'team_num team_name rob1 rob2 rob3 research')
 
     # tournament item statuses
     DONE, NOT_DONE, LATE = range(3)
@@ -118,7 +118,7 @@ class ProgressTable(UIModuleBase):
             research = self.DONE if status_research[team_num-1] \
                 else self.LATE if now > research_limit \
                 else self.NOT_DONE
-            progress.append(self.Status(team_name, robotics[0], robotics[1], robotics[2], research))
+            progress.append(self.Status(team_num, team_name, robotics[0], robotics[1], robotics[2], research))
 
         return {
             "planning": planning,
@@ -130,7 +130,7 @@ class ScoresTable(UIModuleBase):
     """ Current scores table
     """
     ScoreDataItem = namedtuple('ScoreDataItem', 'team score')
-    TeamItem = namedtuple('TeamItem', 'name bonus')
+    TeamItem = namedtuple('TeamItem', 'num name bonus')
 
     @property
     def template_name(self):
@@ -141,12 +141,12 @@ class ScoresTable(UIModuleBase):
         scores = tournament.get_compiled_scores()
         scores_data = [
             self.ScoreDataItem(
-                self.TeamItem(team.name, team.bonus),
+                self.TeamItem(team_num, team.name, team.bonus),
                 # returns a CompiledScore with 0s replaced by blank strings
                 Tournament.CompiledScore(*(item if item is not None else '' for item in score))
             )
-            for team, score in [
-                (tournament.get_team(team_num), score)
+            for team_num, team, score in [
+                (team_num, tournament.get_team(team_num), score)
                 for team_num, score in sorted(scores.items(), key=itemgetter(0))
             ]
         ]
