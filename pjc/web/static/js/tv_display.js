@@ -28,8 +28,11 @@ $(document).ready(function() {
     function update_display() {
         var display_delay = 5; // seconds
 
+        var url = document.location.href;
+        if (url.substr(-1, 1) != '/') url += '/';
+        url += 'content';
         $.ajax({
-            url: document.location.href + "/content",
+            url: url,
             data: {
                 current_display: current_display
             },
