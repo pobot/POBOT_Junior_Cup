@@ -6,6 +6,12 @@
     <link href="/css/pjc-screen.css" rel="stylesheet" >
     <link href="/css/pjc-print.css" rel="stylesheet" media="print">
     {% block local_css %}{% end %}
+
+    <script src="/js/jquery.min.js" type="text/javascript"></script>
+    <script src="/js/bootstrap.min.js" type="text/javascript"></script>
+    <script src="/js/jquery.validate.min.js" type="text/javascript"></script>
+    <script src="/js/admin.js" type="text/javascript"></script>
+    {% block local_scripts %}{% end %}
 </head>
 <body>
 <div class="navbar navbar-default">
@@ -33,7 +39,7 @@
                 <li><a href="/admin/report/ranking">Classement</a></li>
             </ul>
         </li>
-        <li id="clock" class="navbar-brand">00:00:00</li>
+        <li id="clock" class="navbar-brand"></li>
     </ul>
 </div>
 
@@ -44,11 +50,5 @@
 <div class="logo">
     <img src="/img/pobot-logo.svg">
 </div>
-
-<script src="/js/jquery.min.js" type="text/javascript"></script>
-<script src="/js/bootstrap.min.js" type="text/javascript"></script>
-<script src="/js/jquery.validate.min.js" type="text/javascript"></script>
-<script src="/js/admin.js" type="text/javascript"></script>
-{% block local_scripts %}{% end %}
 </body>
 </html>

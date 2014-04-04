@@ -10,11 +10,11 @@ $(document).ready(function() {
         var time    = hours+':'+minutes+':'+seconds;
         return time;
     }
-
-    setInterval(function() {
-        var now = new Date();
-        $("#clock").text(now.toHHMMSS());
-    }, 1000);
+    function update_clock() {
+        $("#clock").text(new Date().toHHMMSS());
+    }
+    update_clock();
+    setInterval(update_clock, 1000);
 
     $.extend($.validator.messages, {
         required: "Ce champ est obligatoire",
