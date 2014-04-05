@@ -1,3 +1,0 @@
-recursive-include pjc/web/static *
-recursive-include pjc/web/templates *
-recursive-exclude pjc/web/static _*
