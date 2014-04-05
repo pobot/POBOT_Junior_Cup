@@ -1,0 +1,60 @@
+.jumbotron {
+    text-align: center;
+}
+
+table {
+    width: 100%;
+}
+
+.navbar {
+    padding: 0 2%;
+}
+
+div.logo {
+    z-index: -10;
+    position: fixed;
+    bottom: -30px;
+    opacity: 0.1;
+}
+
+.translucent {
+    opacity: 0.9;
+}
+
+table.status tbody td {
+    text-align: center;
+    width: 15%;
+}
+
+table.status tbody th {
+    vertical-align: middle;
+}
+
+table.status thead tr.planning th {
+    text-align: center;
+}
+
+table.scores tbody td {
+    text-align: center;
+    width: 12%;
+}
+
+table.score-editor tbody th {
+    width: 40%;
+}
+
+label.text-left {
+    text-align: left !important;
+}
+
+table.final-ranking td, th {
+    vertical-align: top;
+}
+
+table.final-ranking th {
+    text-align: center;
+}
+
+table.final-ranking tr:first-child {
+    color: yellow;
+}

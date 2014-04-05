@@ -1,5 +1,5 @@
 *.pyc
 .idea
 assets
-dist
-*.egg-info
+build
+*.deb

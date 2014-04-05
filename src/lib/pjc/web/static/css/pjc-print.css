@@ -1,0 +1,7 @@
+div.logo, div.navbar {
+    display: none;
+}
+
+th {
+    text-align: left;
+}
