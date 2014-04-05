@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='PJC_tournament_manager',
+    name='PJC_competition_management',
     version='1.0',
     packages=find_packages(),
     include_package_data=True,
