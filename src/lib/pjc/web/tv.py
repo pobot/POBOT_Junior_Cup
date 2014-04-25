@@ -50,22 +50,37 @@ class TVContent(UIRequestHandler, SequencedDisplay):
     TEMPLATES_DIR = 'tv_display'
 
     def get(self):
-        if not self.application.display_sequence:
+        sequence = self.application.get_client_sequence(self.request.connection.address)
+        if not sequence:
             self.send_error(httplib.NOT_FOUND)
 
         current_display = self.get_argument("current_display", None)
+        if not current_display:
+            current_display = sequence.pop(0)
+        current_page = int(self.get_argument("current_page", '1'))
+
         if self.application.tv_message and current_display != "message":
-            next_page = "message"
+            next_display = "message"
+            next_page = 1
+
         else:
-            next_page = self.application.display_sequence.pop(0)
-            self.application.display_sequence.append(next_page)
+            if current_page < self.application.required_pages(current_display):
+                next_display = current_display
+                next_page = current_page + 1
+            else:
+                next_display = sequence.pop(0)
+                next_page = 1
+                sequence.append(next_display)
 
         html = self.render_string(
-            "%s/%s.html" % (self.TEMPLATES_DIR, next_page),
-            application=self.application
+            "%s/%s.html" % (self.TEMPLATES_DIR, next_display),
+            application=self.application,
+            page_num=next_page,
+            page_size=self.application.TV_PAGE_SIZE
         )
         self.write({
-            'display_name': next_page,
+            'display_name': next_display,
+            'current_page': next_page,
             'content': html,
             'delay': self._delay,
             'clock': datetime.datetime.now().strftime("%H:%M")
