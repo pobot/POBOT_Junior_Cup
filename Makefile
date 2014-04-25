@@ -19,7 +19,7 @@ dist: update_build_tree
 
 update_build_tree: 
 	@echo '------ copying files in build area...'
-	mkdir -p $(BUILD_OPT) $(BUILD_VAR_LIB) $(BUILD_ETC) $(BUILD_INIT_D)
+	mkdir -p $(BUILD_OPT)/bin $(BUILD_VAR_LIB) $(BUILD_ETC) $(BUILD_INIT_D)
 
 	# dpkg files
 	cp -ar DEBIAN $(BUILD_ROOT)
