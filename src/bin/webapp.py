@@ -23,6 +23,8 @@ import pjc.web.admin
 from pjc.web import uimodules
 
 
+APP_NAME = 'pjc-compmgr'
+
 _here = os.path.dirname(__file__)
 _lib_root = os.path.join(_here, '../lib/pjc')
 
@@ -34,6 +36,9 @@ class PJCWebApp(tornado.web.Application):
     TEAMS_CFG = 'teams.cfg'
 
     ROBOTICS_ROUND_TYPES = (Round1Score, Round2Score, Round3Score)
+
+    # how many teams per TV display page
+    TV_PAGE_SIZE = 10
 
     _res_home = os.path.join(_lib_root, "web/static")
     _templates_home = os.path.join(_lib_root, "web/templates")
@@ -91,7 +96,8 @@ class PJCWebApp(tornado.web.Application):
 
         settings.update(settings_override)
 
-        self.display_sequence = json.loads(settings['display_sequence'])
+        self._display_sequence = json.loads(settings['display_sequence'])
+        self._client_sequences = {}
         self._tv_message = None
 
         # try to load a previously saved tournament if any, or create a new one otherwise
@@ -151,6 +157,28 @@ class PJCWebApp(tornado.web.Application):
         self._initialize_tournament(self._tournament)
         self.log.info('tournament cleared')
 
+    def get_client_sequence(self, client):
+        key = str(client)
+        try:
+            sequence = self._client_sequences[key]
+        except KeyError:
+            sequence = self._display_sequence[:]
+            self._client_sequences[key] = sequence
+        return sequence
+
+    @property
+    def display_sequence(self):
+        return self._display_sequence
+
+    @display_sequence.setter
+    def display_sequence(self, sequence):
+        self._display_sequence = sequence[:]
+        self._client_sequences = {}
+
+    def required_pages(self, display):
+        # simplified version for the moment : all displays use the same page size
+        return ((self.tournament.team_count - 1) / self.TV_PAGE_SIZE) + 1
+
     @property
     def title(self):
         return "PJCWebApplication"
@@ -175,7 +203,11 @@ class PJCWebApp(tornado.web.Application):
         """ Starts the application
         """
         self.listen(port)
-        tornado.ioloop.IOLoop.instance().start()
+        try:
+            tornado.ioloop.IOLoop.instance().start()
+        except KeyboardInterrupt:
+            print # cosmetic to keep log messages nicely aligned
+            self.log.info('SIGTERM caught')
 
 
 if __name__ == '__main__':
@@ -188,6 +220,9 @@ if __name__ == '__main__':
 
     log = logging.getLogger(__name__)
     log.setLevel(logging.INFO)
+
+    # automatic selection of appropriate default data directory depending on running user
+    default_data_home = '/var/' + APP_NAME if os.getuid() == 0 else os.path.expanduser('~/.' + APP_NAME)
 
     try:
         parser = argparse.ArgumentParser(
@@ -203,7 +238,7 @@ if __name__ == '__main__':
             '-d', '--data-home',
             help='data storage directory path',
             dest='data_home',
-            default=os.path.expanduser('~/.pjcwebapp/'))
+            default=default_data_home)
         seq_arg = parser.add_argument(
             '--display-sequence',
             help='TV display sequence (as a JSON array of page names)',
