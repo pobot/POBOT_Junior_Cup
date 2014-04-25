@@ -55,6 +55,13 @@ table.final-ranking th {
     text-align: center;
 }
 
-table.final-ranking tr:first-child {
-    color: yellow;
+table.final-ranking tr.winner {
+    color: gold;
+}
+
+table.final-ranking tr.winner td {
+    background-image: url("/img/winner_cup.png");
+    background-repeat: no-repeat;
+    background-position: right center;
+    background-size: auto 80%;
 }
