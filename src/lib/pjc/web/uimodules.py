@@ -30,7 +30,7 @@ class UIModuleBase(UIModule):
         """
         raise NotImplementedError()
 
-    def get_template_args(self, application):
+    def get_template_args(self, application, **kwargs):
         """ Returns the keyword arguments to be passed to the body template as a dictionary.
 
         :rtype: dict
@@ -43,10 +43,10 @@ class UIModuleBase(UIModule):
             name += '.html'
         return os.path.join(self.TEMPLATE_DIRECTORY, name)
 
-    def render(self, application):
+    def render(self, application, *args):
         return self.render_string(
             self.make_template_path(),
-            **self.get_template_args(application)
+            **self.get_template_args(application, *args)
         )
 
 
@@ -74,6 +74,15 @@ class TVDisplayPageTitle(UIModuleBase):
         )
 
 
+def paginate(data, page_num=1, page_size=0):
+    if page_size:
+        start = page_size * (page_num - 1)
+        end = start + page_size
+        return data[start:end]
+    else:
+        return data
+
+
 class ProgressTable(UIModuleBase):
     """ Tournament progress table
     """
@@ -87,10 +96,11 @@ class ProgressTable(UIModuleBase):
     def template_name(self):
         return "progress"
 
-    def get_template_args(self, application):
+    def get_template_args(self, application, page_num=1):
         tournament = application.tournament
         times = tournament.planning
         planning = self.Planning(*[t.strftime("%H:%M") for t in times])
+        page_size = application.TV_PAGE_SIZE
 
         now = datetime.datetime.now()
         today = now.date()
@@ -124,7 +134,7 @@ class ProgressTable(UIModuleBase):
 
         return {
             "planning": planning,
-            "progress": progress
+            "progress": paginate(progress, page_num, page_size)
         }
 
 
@@ -138,8 +148,9 @@ class ScoresTable(UIModuleBase):
     def template_name(self):
         return "scores"
 
-    def get_template_args(self, application):
+    def get_template_args(self, application, page_num=1):
         tournament = application.tournament
+        page_size = application.TV_PAGE_SIZE
         scores = tournament.get_compiled_scores()
         scores_data = [
             self.ScoreDataItem(
@@ -153,7 +164,7 @@ class ScoresTable(UIModuleBase):
             ]
         ]
         return {
-            "scores_data": scores_data
+            "scores_data": paginate(scores_data, page_num, page_size)
         }
 
 
@@ -167,18 +178,37 @@ class RankingTable(UIModuleBase):
     def template_name(self):
         return "ranking"
 
-    def get_template_args(self, application):
+    def get_template_args(self, application, page_num=1):
         tournament = application.tournament
+        page_size = application.TV_PAGE_SIZE
 
         def get_names(teams_nums):
             return (tournament.get_team(num).name for num in teams_nums)
 
-        ranking = [
-            self.ResultItem(rank, get_names(teams))
-            for rank, teams in tournament.get_final_ranking()
-        ]
+        start = page_size * (page_num - 1)
+        end = start + page_size
+
+        result = []
+
+        current_rank = None
+        current_teams = []
+
+        exploded = []
+        for rank, teams in tournament.get_final_ranking():
+            ranks = [rank] * len(teams)
+            exploded.extend(zip(ranks, teams))
+
+        for rank, team in exploded[start:end]:
+            if rank != current_rank:
+                if current_rank:
+                    result.append(self.ResultItem(current_rank, get_names(current_teams)))
+                    current_teams = []
+                current_rank = rank
+            current_teams.append(team)
+        result.append(self.ResultItem(current_rank, get_names(current_teams)))
+
         return {
-            'ranking': ranking
+            'ranking': result
         }
 
 
