@@ -5,6 +5,7 @@ $(document).ready(function() {
     error_container.hide();
 
     var current_display = "";
+    var current_page = 1;
 
     function update_display() {
         var display_delay = 5; // seconds
@@ -15,17 +16,20 @@ $(document).ready(function() {
         $.ajax({
             url: url,
             data: {
-                current_display: current_display
+                current_display: current_display,
+                current_page: current_page
             },
             dataType: "json",
             timeout: 5000,
             success: function(data) {
                 // received data is a dictionary with the following entries:
                 // - display_name : the symbolic name of the returned display
+                // - current_page : the number of the current page (>= 1) for paginated displays
                 // - content (string) : the HTML code to be displayed in the content division
                 // - delay (int) : the delay (in seconds) before requesting next display
                 // - clock (string) : the server clock at display time
                 current_display = data.display_name;
+                current_page = data.current_page;
                 display_delay = data.delay;
 
                 clock_container.html(data.clock);
