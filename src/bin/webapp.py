@@ -9,6 +9,7 @@ __author__ = 'eric'
 import os
 import logging
 import json
+import threading
 
 import tornado.ioloop
 import tornado.web
@@ -71,6 +72,8 @@ class PJCWebApp(tornado.web.Application):
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(logging.INFO)
         self.log.info('starting')
+
+        self._lock = threading.Lock()
 
         settings = {
             'debug': False,
@@ -158,12 +161,13 @@ class PJCWebApp(tornado.web.Application):
         self.log.info('tournament cleared')
 
     def get_client_sequence(self, client):
-        key = str(client)
-        try:
-            sequence = self._client_sequences[key]
-        except KeyError:
-            sequence = self._display_sequence[:]
-            self._client_sequences[key] = sequence
+        with self._lock:
+            key = str(client)
+            try:
+                sequence = self._client_sequences[key]
+            except KeyError:
+                sequence = self._display_sequence[:]
+                self._client_sequences[key] = sequence
         return sequence
 
     @property
@@ -172,8 +176,10 @@ class PJCWebApp(tornado.web.Application):
 
     @display_sequence.setter
     def display_sequence(self, sequence):
-        self._display_sequence = sequence[:]
-        self._client_sequences = {}
+        with self._lock:
+            self._display_sequence = sequence[:]
+            self.log.info("display sequence changed to : %s", self._display_sequence)
+            self._client_sequences = {}
 
     def required_pages(self, display):
         # simplified version for the moment : all displays use the same page size
