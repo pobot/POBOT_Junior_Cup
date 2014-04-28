@@ -48,22 +48,35 @@ class SequencedDisplay(object):
 
 class TVContent(UIRequestHandler, SequencedDisplay):
     TEMPLATES_DIR = 'tv_display'
+    display_saved_context = {}
 
     def get(self):
-        sequence = self.application.get_client_sequence(self.request.connection.address)
+        client = self.request.connection.address
+        sequence = self.application.get_client_sequence(client)
         if not sequence:
             self.send_error(httplib.NOT_FOUND)
 
         current_display = self.get_argument("current_display", None)
+
+        # handle the case where the server is restarted while a TV was displaying a message
+        if current_display == "message" and not self.application.tv_message:
+            current_display = None
+
         if not current_display:
             current_display = sequence.pop(0)
         current_page = int(self.get_argument("current_page", '1'))
 
         if self.application.tv_message and current_display != "message":
+            self.display_saved_context[client] = (current_display, current_page)
             next_display = "message"
             next_page = 1
 
         else:
+            # restore the context as it was when the message was inserted in the sequence
+            if client in self.display_saved_context:
+                current_display, current_page = self.display_saved_context[client]
+                del self.display_saved_context[client]
+
             if current_page < self.application.required_pages(current_display):
                 next_display = current_display
                 next_page = current_page + 1
