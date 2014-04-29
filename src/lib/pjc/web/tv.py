@@ -51,8 +51,11 @@ class TVContent(UIRequestHandler, SequencedDisplay):
     display_saved_context = {}
 
     def get(self):
-        client = self.request.connection.address
+        client, port = self.request.connection.address
+
         sequence = self.application.get_client_sequence(client)
+        if self.application.debug:
+            self.application.log.debug("seq(%s) = %s", client, sequence)
         if not sequence:
             self.send_error(httplib.NOT_FOUND)
 
@@ -64,7 +67,12 @@ class TVContent(UIRequestHandler, SequencedDisplay):
 
         if not current_display:
             current_display = sequence.pop(0)
-        current_page = int(self.get_argument("current_page", '1'))
+            current_page = 1
+        else:
+            current_page = int(self.get_argument("current_page", '1'))
+
+        if self.application.debug:
+            self.application.log.debug("curdisp/curpage(%s) = %s/%s", client, current_display, current_page)
 
         if self.application.tv_message and current_display != "message":
             self.display_saved_context[client] = (current_display, current_page)
@@ -74,6 +82,8 @@ class TVContent(UIRequestHandler, SequencedDisplay):
         else:
             # restore the context as it was when the message was inserted in the sequence
             if client in self.display_saved_context:
+                if self.application.debug:
+                    self.application.log.debug("restoring display context for client %s", client)
                 current_display, current_page = self.display_saved_context[client]
                 del self.display_saved_context[client]
 
@@ -84,6 +94,9 @@ class TVContent(UIRequestHandler, SequencedDisplay):
                 next_display = sequence.pop(0)
                 next_page = 1
                 sequence.append(next_display)
+
+        if self.application.debug:
+            self.application.log.debug("nextdisp/nextpage(%s) = %s/%s", client, next_display, next_page)
 
         html = self.render_string(
             "%s/%s.html" % (self.TEMPLATES_DIR, next_display),
