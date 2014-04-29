@@ -1,3 +1,5 @@
 #!/bin/bash
 
 service pjc-compmgr stop
+# avoid uninstall failure if service already stopped
+exit 0
