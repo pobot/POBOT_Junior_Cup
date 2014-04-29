@@ -98,6 +98,9 @@ class PJCWebApp(tornado.web.Application):
                 os.remove(checker_path)
 
         settings.update(settings_override)
+        self.debug = settings['debug']
+        if self.debug:
+            self.log.setLevel(logging.DEBUG)
 
         self._display_sequence = json.loads(settings['display_sequence'])
         self._client_sequences = {}
@@ -105,8 +108,13 @@ class PJCWebApp(tornado.web.Application):
 
         # try to load a previously saved tournament if any, or create a new one otherwise
         self._tournament = Tournament(self.ROBOTICS_ROUND_TYPES)
-        if not self._load_tournament(self._tournament):
+        try:
+            self._load_tournament(self._tournament)
+        except IOError as e:
+            self.log.warn('... no previous tournament data found => initializing new one')
             self._initialize_tournament(self._tournament)
+        else:
+            self.log.info('... done')
 
         super(PJCWebApp, self).__init__(self.handlers, **settings)
 
@@ -123,7 +131,7 @@ class PJCWebApp(tornado.web.Application):
                 teams_cfg = json.load(fp)
                 for name, level in teams_cfg:
                     tournament.add_team(Team(name, level))
-            self.log.info('done')
+            self.log.info('... done')
         else:
             self.log.warn('no team configuration found in %s' % self._data_home)
 
@@ -131,17 +139,10 @@ class PJCWebApp(tornado.web.Application):
     def _tournament_file_path(self):
         return os.path.join(self._data_home, self.TOURNAMENT_DAT)
 
-    def _load_tournament(self, tournament):
+    def _load_tournament(self, tournament, silent=False):
         self.log.info('loading tournament from %s', self._tournament_file_path)
-        try:
-            with file(self._tournament_file_path, 'rb') as fp:
-                tournament.from_dict(json.load(fp))
-        except Exception as e:
-            self.log.error('failed (%s)' % e)
-            return False
-        else:
-            self.log.info('done')
-            return True
+        with file(self._tournament_file_path, 'rb') as fp:
+            tournament.from_dict(json.load(fp))
 
     def save_tournament(self):
         """ Saves the tournament to disk.
@@ -162,6 +163,8 @@ class PJCWebApp(tornado.web.Application):
 
     def get_client_sequence(self, client):
         with self._lock:
+            if self.debug:
+                self.log.debug('sequences=%s', self._client_sequences)
             key = str(client)
             try:
                 sequence = self._client_sequences[key]
@@ -228,7 +231,7 @@ if __name__ == '__main__':
     log.setLevel(logging.INFO)
 
     # automatic selection of appropriate default data directory depending on running user
-    default_data_home = '/var/' + APP_NAME if os.getuid() == 0 else os.path.expanduser('~/.' + APP_NAME)
+    default_data_home = '/var/lib/' + APP_NAME if os.getuid() == 0 else os.path.expanduser('~/.' + APP_NAME)
 
     try:
         parser = argparse.ArgumentParser(
