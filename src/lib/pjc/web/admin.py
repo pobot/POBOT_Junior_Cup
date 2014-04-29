@@ -34,11 +34,6 @@ class AdminHome(AdminUIHandler):
 
 
 class AdminProgress(AdminUIHandler, ProgressDisplayHandler):
-    """ Administration application home page.
-
-    Displays the competition progression, using the progression report generator shared with
-    the administration application.
-    """
     pass
 
 
