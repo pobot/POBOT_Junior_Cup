@@ -46,6 +46,9 @@ update_build_tree:
 	# init script
 	cp -a src/init.d/$(APP_NAME) $(BUILD_INIT_D)
 
+	# teams list
+	cp -a src/var/* $(BUILD_VAR_LIB)
+
 clean:
 	@echo '------ cleaning all...'
 	rm -rf $(BUILD_ROOT) $(DEBPKG_NAME).deb
