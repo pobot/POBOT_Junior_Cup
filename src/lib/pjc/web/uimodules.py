@@ -43,10 +43,10 @@ class UIModuleBase(UIModule):
             name += '.html'
         return os.path.join(self.TEMPLATE_DIRECTORY, name)
 
-    def render(self, application, *args):
+    def render(self, application, *args, **kwargs):
         return self.render_string(
             self.make_template_path(),
-            **self.get_template_args(application, *args)
+            **self.get_template_args(application, *args, **kwargs)
         )
 
 
@@ -96,11 +96,10 @@ class ProgressTable(UIModuleBase):
     def template_name(self):
         return "progress"
 
-    def get_template_args(self, application, page_num=1):
+    def get_template_args(self, application, page_num=1, tv_display=False):
         tournament = application.tournament
         times = tournament.planning
         planning = self.Planning(*[t.strftime("%H:%M") for t in times])
-        page_size = application.TV_PAGE_SIZE
 
         now = datetime.datetime.now()
         today = now.date()
@@ -134,7 +133,7 @@ class ProgressTable(UIModuleBase):
 
         return {
             "planning": planning,
-            "progress": paginate(progress, page_num, page_size)
+            "progress": paginate(progress, page_num, application.TV_PAGE_SIZE) if tv_display else progress
         }
 
 
@@ -148,9 +147,8 @@ class ScoresTable(UIModuleBase):
     def template_name(self):
         return "scores"
 
-    def get_template_args(self, application, page_num=1):
+    def get_template_args(self, application, page_num=1, tv_display=False):
         tournament = application.tournament
-        page_size = application.TV_PAGE_SIZE
         scores = tournament.get_compiled_scores()
         scores_data = [
             self.ScoreDataItem(
@@ -164,7 +162,7 @@ class ScoresTable(UIModuleBase):
             ]
         ]
         return {
-            "scores_data": paginate(scores_data, page_num, page_size)
+            "scores_data": paginate(scores_data, page_num, application.TV_PAGE_SIZE) if tv_display  else scores_data
         }
 
 
@@ -178,9 +176,9 @@ class RankingTable(UIModuleBase):
     def template_name(self):
         return "ranking"
 
-    def get_template_args(self, application, page_num=1):
+    def get_template_args(self, application, page_num=1, tv_display=False):
         tournament = application.tournament
-        page_size = application.TV_PAGE_SIZE
+        page_size = application.TV_PAGE_SIZE if tv_display else 99999
 
         def get_names(teams_nums):
             return (tournament.get_team(num).name for num in teams_nums)
