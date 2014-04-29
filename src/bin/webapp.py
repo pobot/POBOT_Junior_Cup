@@ -168,6 +168,8 @@ class PJCWebApp(tornado.web.Application):
             key = str(client)
             try:
                 sequence = self._client_sequences[key]
+                if len(sequence) == 0:
+                    raise KeyError()
             except KeyError:
                 sequence = self._display_sequence[:]
                 self._client_sequences[key] = sequence
