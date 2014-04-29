@@ -4,8 +4,10 @@ if [ "$INSTALL_DEPS" == "1" ] ; then
     pip install tornado
 fi
 
-update-rc.d pjc-compmgr defaults
+SVC_NAME="pjc-compmgr"
+
+update-rc.d $SVC_NAME defaults
 
 if [ "$START_SERVICE" == "1" ] ; then
-    service start pjc-compmgr
+    service $SVC_NAME start
 fi
