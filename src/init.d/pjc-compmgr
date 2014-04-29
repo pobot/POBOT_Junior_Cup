@@ -1,9 +1,20 @@
 #!/bin/bash
+### BEGIN INIT INFO
+# Provides:          pjc-compmgr
+# Required-Start:    $remote_fs
+# Required-Stop:     $remote_fs
+# Should-Start:	     $syslog
+# Should-Stop:       $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: POBOT Junior Cup Manager Web Application
+# Description:       POBOT Junior Cup Manager Web Application
+### END INIT INFO
 
 PATH=/sbin:/usr/sbin:/bin:/usr/bin
 DESC="PJC Competition Management application server"
 NAME=pjc-compmgr
-DAEMON=/optpjc-compmgr/bin/webapp.py
+DAEMON=/opt/pjc-compmgr/bin/webapp.py
 # DAEMON_ARGS="<optional daemon arguments>"
 # INIT_VERBOSE=yes
 
@@ -21,7 +32,7 @@ SCRIPTNAME=/etc/init.d/$NAME
 [ -x "$DAEMON" ] || exit 0
 
 # setup global definitions, such as PYTHONPATH
-export PYTHONPATH=
+export PYTHONPATH=/opt/pjc-compmgr/lib
 
 # Read configuration variable file if it is present
 [ -r /etc/default/$NAME ] && . /etc/default/$NAME
