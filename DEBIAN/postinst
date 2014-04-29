@@ -1,7 +1,6 @@
 #!/bin/bash
 
 if [ "$INSTALL_DEPS" == "1" ] ; then
-    apt-get install pip
     pip install tornado
 fi
 

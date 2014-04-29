@@ -3,6 +3,6 @@ Version: 1.0
 Section: base
 Priority: optional
 Architecture: all
-Depends: python (>= 2.7), python (<< 3.0)
+Depends: python (>= 2.7), python (<< 3.0), python-pip
 Maintainer: Eric Pascual <eric@pobot.org>
 Description: A Web application for managing the POBOT Junior Cup competition event.
