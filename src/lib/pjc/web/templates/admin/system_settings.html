@@ -15,26 +15,28 @@
     <fieldset>
         <legend>Réglage horloge</legend>
 
-        <div class="form-group">
-            <label for="date" class="col-md-3 control-label">Date (jj/mm/aa)</label>
-            <div class="col-md-2">
-                <input class="form-control DDMMYY" id="date" name="date"
-                       placeholder="jj/mm/aa" style="text-align:center"
-                       type="text" required value="{{current_date}}">
+        <div class="col-md-offset-3">
+            <div class="form-group">
+                <label for="date" class="col-md-3 control-label">Date (jj/mm/aa)</label>
+                <div class="col-md-2">
+                    <input class="form-control DDMMYY" id="date" name="date"
+                           placeholder="jj/mm/aa" style="text-align:center"
+                           type="text" required value="{{current_date}}">
 
+                </div>
+                <label id="msg_date" class="control-label"></label>
             </div>
-            <label id="msg_date" class="control-label"></label>
-        </div>
 
-        <div class="form-group">
-            <label for="time" class="col-md-3 control-label">Heure (hh:mn)</label>
-            <div class="col-md-2">
-                <input class="form-control HHMM" id="time" name="time"
-                       placeholder="hh:mn" style="text-align:center"
-                       type="text" required value="{{current_time}}">
+            <div class="form-group">
+                <label for="time" class="col-md-3 control-label">Heure (hh:mn)</label>
+                <div class="col-md-2">
+                    <input class="form-control HHMM" id="time" name="time"
+                           placeholder="hh:mn" style="text-align:center"
+                           type="text" required value="{{current_time}}">
 
+                </div>
+                <label id="msg_time" class="control-label"></label>
             </div>
-            <label id="msg_time" class="control-label"></label>
         </div>
     {% module FormButtons() %}
 </form>
