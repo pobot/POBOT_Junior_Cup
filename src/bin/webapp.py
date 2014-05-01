@@ -161,6 +161,9 @@ class PJCWebApp(tornado.web.Application):
         self._initialize_tournament(self._tournament)
         self.log.info('tournament cleared')
 
+    def client_is_known(self, client):
+        return client in self._client_sequences
+
     def get_client_sequence(self, client):
         with self._lock:
             if self.debug:
