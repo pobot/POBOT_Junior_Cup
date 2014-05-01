@@ -53,13 +53,17 @@ class TVContent(UIRequestHandler, SequencedDisplay):
     def get(self):
         client, port = self.request.connection.address
 
+        if self.application.client_is_known(client):
+            current_display = self.get_argument("current_display", None)
+            current_page = int(self.get_argument("current_page", '1'))
+        else:
+            current_display, current_page = None, 0
+
         sequence = self.application.get_client_sequence(client)
         if self.application.debug:
             self.application.log.debug("seq(%s) = %s", client, sequence)
         if not sequence:
             self.send_error(httplib.NOT_FOUND)
-
-        current_display = self.get_argument("current_display", None)
 
         # handle the case where the server is restarted while a TV was displaying a message
         if current_display == "message" and not self.application.tv_message:
@@ -67,9 +71,6 @@ class TVContent(UIRequestHandler, SequencedDisplay):
 
         if not current_display:
             current_display = sequence.pop(0)
-            current_page = 1
-        else:
-            current_page = int(self.get_argument("current_page", '1'))
 
         if self.application.debug:
             self.application.log.debug("curdisp/curpage(%s) = %s/%s", client, current_display, current_page)
@@ -91,9 +92,9 @@ class TVContent(UIRequestHandler, SequencedDisplay):
                 next_display = current_display
                 next_page = current_page + 1
             else:
+                sequence.append(current_display)
                 next_display = sequence.pop(0)
                 next_page = 1
-                sequence.append(next_display)
 
         if self.application.debug:
             self.application.log.debug("nextdisp/nextpage(%s) = %s/%s", client, next_display, next_page)
