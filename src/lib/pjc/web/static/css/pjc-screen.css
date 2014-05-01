@@ -34,8 +34,14 @@ table.status tbody th {
     vertical-align: middle;
 }
 
-table.status thead tr.planning th {
+table.status thead tr th {
     text-align: center;
+    vertical-align: top;
+}
+
+table.scores thead tr th {
+    text-align: center;
+    vertical-align: top;
 }
 
 table.scores tbody td {
