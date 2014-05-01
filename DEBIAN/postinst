@@ -8,6 +8,6 @@ SVC_NAME="pjc-compmgr"
 
 update-rc.d $SVC_NAME defaults
 
-if [ "$START_SERVICE" == "1" ] ; then
+if [ "$NO_START" != "1" ] ; then
     service $SVC_NAME start
 fi
