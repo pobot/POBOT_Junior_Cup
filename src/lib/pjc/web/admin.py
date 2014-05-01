@@ -2,7 +2,9 @@
 # -*- coding: utf-8 -*-
 
 from collections import namedtuple
-from datetime import timedelta
+from datetime import datetime, timedelta
+import subprocess
+from tornado.web import HTTPError
 
 from pjc.web.ui import UIRequestHandler, ProgressDisplayHandler, ScoresDisplayHandler, RankingDisplayHandler
 from pjc.web.lib import parse_hhmm_time, format_hhmm_time
@@ -93,6 +95,29 @@ class TVDisplaySettingsEditor(AdminUIHandler):
 
         level, message = (self.get_argument('msg_' + fld) for fld in ('level', 'text'))
         self.application.tv_message = (level, message) if message else None
+
+
+class SystemSettingsEditor(AdminUIHandler):
+
+    @property
+    def template_name(self):
+        return "system_settings"
+
+    @property
+    def template_args(self):
+        now = datetime.now()
+        return {
+            'current_date': now.strftime("%d/%m/%y"),
+            'current_time': now.strftime("%H:%M")
+        }
+
+    def post(self):
+        s_date = self.get_argument('date').split('/')
+        s_time = self.get_argument('time').split(':')
+
+        return_code = subprocess.call(["date", ''.join([s_date[1], s_date[0], s_time[0], s_time[1]])])
+        if return_code != 0 :
+            raise HTTPError(400, reason="code retour commande date = %d" % return_code)
 
 
 def MMSS_to_seconds(s):
@@ -319,6 +344,7 @@ handlers = [
     (r"/admin/report/ranking", AdminRankingReport),
     (r"/admin/settings/planning", AdminPlanningEditor),
     (r"/admin/settings/tv_display", TVDisplaySettingsEditor),
+    (r"/admin/settings/system", SystemSettingsEditor),
     (r"/admin/scores/rob1", AdminRoboticsRound1ScoreEditor),
     (r"/admin/scores/rob2", AdminRoboticsRound2ScoreEditor),
     (r"/admin/scores/rob3", AdminRoboticsRound3ScoreEditor),
