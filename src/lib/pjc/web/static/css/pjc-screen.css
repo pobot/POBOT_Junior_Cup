@@ -13,8 +13,12 @@ table {
 div.logo {
     z-index: -10;
     position: fixed;
-    bottom: -30px;
+    bottom: 20px;
+    left: 20px;
     opacity: 0.1;
+    background: url("/img/pobot-logo-bw.png") no-repeat;
+    width: 545px;
+    height: 500px;
 }
 
 .translucent {
