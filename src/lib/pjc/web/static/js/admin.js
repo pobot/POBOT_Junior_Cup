@@ -25,9 +25,16 @@ $(document).ready(function() {
 
     $.validator.addMethod("HHMM",
         function(value, element) {
-            return /^([0-1][0-9]|2[0-4]):([0-5][0-9])?$/.test(value);
+            return /^([0-1][0-9]|2[0-3]):([0-5][0-9])?$/.test(value);
         },
-        "Horaire invalide (format attendu: HH:MM)"
+        "Heure invalide (format attendu: HH:MM)"
+    );
+
+    $.validator.addMethod("DDMMYY",
+        function(value, element) {
+            return moment(value, "DD/MM/YY").isValid();
+        },
+        "Date invalide (format attendu: JJ/MM/AA)"
     );
 
     $.validator.addMethod("match-duration",
