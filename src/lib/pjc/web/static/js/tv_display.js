@@ -5,7 +5,7 @@ $(document).ready(function() {
     error_container.hide();
 
     var current_display = "";
-    var current_page = 1;
+    var current_page = 0;
 
     function update_display() {
         var display_delay = 5; // seconds
@@ -39,6 +39,9 @@ $(document).ready(function() {
             error: function(jqXHR, textStatus, errorThrown) {
                 if (textStatus == "error") {
                     error_container.show();
+                    // reset the sequence for restarting cleanly when communication will be back
+                    current_display = "";
+                    current_page = 0;
                 }
             },
             complete: function(jqXHR, textStatus) {
