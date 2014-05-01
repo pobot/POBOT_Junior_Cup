@@ -30,6 +30,8 @@ class TVStart(UIRequestHandler):
 
 
 class SequencedDisplay(object):
+    """ Mixin adding the sequenced display feature.
+    """
     # default display delay
     _delay = 5
 
@@ -47,6 +49,11 @@ class SequencedDisplay(object):
 
 
 class TVContent(UIRequestHandler, SequencedDisplay):
+    """ Handler providing the content part of the displays on TV sets.
+
+    Javascript code of the HTML page periodically uses this request to get the next content
+    to put on the public address TV screens.
+    """
     TEMPLATES_DIR = 'tv_display'
     display_saved_context = {}
 
