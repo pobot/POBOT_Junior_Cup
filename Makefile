@@ -41,6 +41,7 @@ update_build_tree:
 		--include "*.jpeg" \
 		--include "*.gif" \
 		--include "*.svg" \
+		--include "*.pdf" \
 		--exclude "*" \
 		src/lib/ $(BUILD_OPT)/lib
 
