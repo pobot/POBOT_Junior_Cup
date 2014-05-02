@@ -3,11 +3,20 @@ $(document).ready(function() {
 
     feedback.hide();
 
+    $("button#synchronize").click(function(){
+        var now = moment();
+        $("input#date").val(now.format("DD/MM/YY"));
+        $("input#time").val(now.format("hh:mm"));
+
+        // in case of a previous error display
+        $("#msg_date").html("");
+        $("#msg_time").html("");
+    });
+
     $("#system_settings").validate({
         submitHandler: function(form) {
-            /* check if the sequence is not empty */
-            $("#msg_date").html();
-            $("#msg_time").html();
+            $("#msg_date").html("");
+            $("#msg_time").html("");
 
             $.ajax({
                 url: document.location.href,

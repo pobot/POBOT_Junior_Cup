@@ -13,29 +13,45 @@
 
 <form id="system_settings" role="form" class="form-horizontal">
     <fieldset>
-        <legend>Réglage horloge</legend>
+        <legend>Réglage horloge serveur</legend>
 
-        <div class="col-md-offset-3">
+        <div class="panel panel-default col-md-offset-1 col-md-10">
+            <div class="panel-body">
+                <p>L'horloge du serveur est utilisée comme référence de temps pour l'application, notamment pour le
+                    suivi de l'avancement.
+                    Elle apparaît aussi sur les affichages des écrans de diffusion au public. </p>
+                <p><span class="label label-warning">Attention</span> L'horloge affichée sur les pages d'admnistration
+                    est <b>l'heure locale</b> du PC utilisé pour naviguer, et non celle du serveur.</p>
+            </div>
+        </div>
+
+        <div class="col-md-offset-1">
             <div class="form-group">
-                <label for="date" class="col-md-3 control-label">Date (jj/mm/aa)</label>
+                <label for="date" class="col-md-2 control-label">Date (jj/mm/aa)</label>
                 <div class="col-md-2">
                     <input class="form-control DDMMYY" id="date" name="date"
                            placeholder="jj/mm/aa" style="text-align:center"
                            type="text" required value="{{current_date}}">
 
                 </div>
-                <label id="msg_date" class="control-label"></label>
-            </div>
 
-            <div class="form-group">
-                <label for="time" class="col-md-3 control-label">Heure (hh:mn)</label>
+                <label for="time" class="col-md-2 control-label">Heure (hh:mn)</label>
                 <div class="col-md-2">
                     <input class="form-control HHMM" id="time" name="time"
                            placeholder="hh:mn" style="text-align:center"
                            type="text" required value="{{current_time}}">
 
                 </div>
-                <label id="msg_time" class="control-label"></label>
+
+                <div class="col-md-2 text-right">
+                    <button id="synchronize" type="button" class="btn btn-default"
+                            title="Initialise le formulaire avec l'heure du PC">Synchroniser</button>
+                </div>
+                <p>
+                <label id="msg_date" class="col-md-4 control-label"></label>
+                <label id="msg_time" class="col-md-4 control-label"></label>
+                <label id="filler" class="col-md-2 control-label">&nbsp;</label>
+                </p>
             </div>
         </div>
     {% module FormButtons() %}
