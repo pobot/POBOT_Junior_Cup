@@ -147,8 +147,8 @@ répertoire `<app-dir>` le lancement s'effectue par :
 
 Le répertoire de données est alors `$HOME/.pjc-compmgr/`.
 
-Configuration des clients
--------------------------
+Configuration des clients pour affichage TV
+-------------------------------------------
 
 Les clients sont des Raspberry sans logiciel particulier, utilisant le navigateur Web en mode plein écran.
 
