@@ -1,3 +1,9 @@
+# Makefile for the creation of the Debian deployment package.
+
+# Dependencies:
+# - rsync
+# - dpkg-deb
+
 SHELL=/bin/bash
 
 APP_NAME=pjc-compmgr

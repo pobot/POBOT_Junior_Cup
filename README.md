@@ -1,14 +1,32 @@
 POBOT Junior Cup - Gestion de la compétition
 ============================================
 
-Cette application aide à gérer le déroulement et l'animation de la compétition en fournissant
+Avertissement
+-------------
+
+Le projet n'a été publié sur ce repository pour être réutilisé tel quel, car il est spécifique à notre
+compétition, et est de plus calé sur le règlement de l'édition 2014. L'adapter à d'autres règles de calcul est
+cependant très simple, l'objectif étant justement qu'il soit facilement réutilisable pour les éditions à venir.
+
+Il a été publié pour illustrer des exemples de solutions possibles utilisant Python et ses biliothèques pour traiter
+ce type de problème. Il illustre aussi des aspects complémentaires, tels que la création d'un package Debian pour
+en simplifier le déploiement.
+
+Il s'agit donc plus d'une publication à des fins pédagogiques qu'à des fins utilitaires.
+
+**Note:** les commentaires dans les sources sont en Anglais... par déformation professionnelle.
+
+
+Description rapide
+------------------
+
+Cette application Python aide à gérer le déroulement et l'animation de la compétition en fournissant
 deux types de fonctionnalités :
 
 * gestion des scores et du classement
-* diffusion d'information au public
+* diffusion d'information au public via écrans TV
 
-L'ensemble de ces fonctions est proposés via interface Web sur navigateur, y compris la diffusion
-d'information au public.
+L'ensemble de ces fonctions est proposé via une interface Web, y compris les affichages sur écran TV.
 
 Pour plus d'information sur la POBOT Junior Cup, faites un tour sur notre
 [site Web](http://www.pobot.org/-POBOT-Junior-Cup-.html).
@@ -40,6 +58,9 @@ Une page de diffusion de message est également gérée automatiquement.
 
 La configuration de l'enchaînement des différents affichages, ainsi que du message à diffuser si nécessaire,
 est proposé dans des pages spécifiques de l'application.
+
+La configuration des "clients" (les Raspberry n'assurant que la fonction d'affichage sur TV), se reporter à la section
+"Configuration des clients".
 
 Installation
 ------------
@@ -108,3 +129,39 @@ répertoire `<app-dir>` le lancement s'effectue par :
     PYTHONPATH=./lib python bin/webapp.py
 
 Le répertoire de données est alors `$HOME/.pjc-compmgr/`.
+
+Configuration des clients
+-------------------------
+
+Les clients sont des Raspberry sans logiciel particulier, utilisant le navigateur Web en mode plein écran.
+
+Afin d'en rendre le démarrage automatique, les étapes suivantes sont à exécuter :
+
+* copier le fichier `<project-root>/client/start-tv-display-lxde` dans le home dir de l'utilisateur `pi` par exemple (en fait
+l'emplacement de ce fichier importe peu, l'avantage du home dir est de ne pas nécessiter d'être sudo pour y écrire).
+
+* remplacer le fichier `/etc/xdg/lxsession/LXED/autostart` par :
+
+        @xset -dpms
+        @xset s off
+
+        @unclutter
+        /home/pi/start-tv-display-lxde
+
+Le script `start-tv-display-lxde` a pour fonction de s'assurer que la machine faisant office de serveur est en ligne
+avant de lancer le navigateur, afin d'éviter que celui n'affiche un message d'erreur de type "page non trouvée", et
+oblige à connecter un clavier à la Raspberry pour débloquer la situation. Ce script est basé sur le fait que
+l'identification réseau du serveur est `pjc-display-1.local`. Modifiez-le pour l'adapter aux identificateurs des
+machines de la configuration.
+
+Si vous avez copié le script `start-tv-display-lxde` à un autre emplacement que celui suggéré, modifiez la dernière
+commande du script en conséquence.
+
+Les commandes `xset` servent à désactiver le DPMS et le screensaver pour éviter que l'écran ne s'éteigne au bout de
+10 minutes. `xset` fait partie du package `x11-xserver-utils`. Vérifiez si elle est installée en l'appelant depuis la
+ligne de commande.
+
+`unclutter` permet de supprimer le pointeur de la souris lorsqu'elle reste à la même position. Il s'installe depuis
+le repository standard via `sudo apt-get install unclutter`.
+
+Pour plus de détails sur ces sujets : [http://www.pobot.org/Utiliser-la-Raspberry-en-mode.html](http://www.pobot.org/Utiliser-la-Raspberry-en-mode.html)
