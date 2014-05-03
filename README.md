@@ -79,11 +79,28 @@ code source peut toujours être exploité pour explorer l'utilisation de Tornado
 L'application est disponible sous forme d'un paquet Debian, qui peut être généré au moyen du Makefile fourni
 (`make dist`). L'installation du paquet configure également le script init et peut gérer
 l'installation automatique des dépendances grâce aux variables d'environnements suivantes `INSTALL_DEPS` et
-`START_SERVICE`.
+`NO_START`.
 
-La commande *full options* est donc :
+Comportement par défaut :
 
-    sudo INSTALL_DEPS=1 START_SERVICE=1 dpkg -i pjc-compmgr_<version>_all.deb
+* les dépendances ne sont pas installées (pour éviter de le refaire à chaque mise à jour). Préfixer la commande `dpkg`
+par `INSTALL_DEPS=1` pour les installer avant toute autre opération.
+* le service est démarré automatiquement en fin d'installation, ce qui convient au cas d'usage
+commun. Si on ne souhaite pas le démarrage automatique (par exemple, si on a oublié de demander l'installation
+des dépendances ou qu'on préfère le faire manuellement), il suffit de préfixer la commande `dpkg` par `NO_START=1`
+
+Quelques exemples d'utilisation :
+
+    sudo INSTALL_DEPS=1 dpkg -i pjc-compmgr_<version>_all.deb
+Installe l'application et ses dépendances, puis la démarre. A utiliser pour la toute première installation.
+
+    sudo dpkg -i pjc-compmgr_<version>_all.deb
+Installe l'application sans les dépendances, et la démarre ensuite. A n'utiliser que pour une mise à jour, sauf si
+les dépendances sont déjà installées.
+
+    sudo NO_START=1 dpkg -i pjc-compmgr_<version>_all.deb
+La même chose sans démarrer l'application.
+
 
 ### Installation manuelle (utilisateur)
 
