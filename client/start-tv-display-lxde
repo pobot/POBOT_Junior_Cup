@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# This script waits for the application server to be online and then starts
+# the browser and makes it point to the appropriate URL
+#
+# On a Raspberry equiped wih Raspbian/LXDE, to have this start automatically
+# when booting, put this script in /hom/pi for instance, and replace 
+# /etc/xdg/lxsession/LXDE/autostart content with :
+#
+# @xset -dpms
+# @xset s off
+#
+# @unclutter
+# /home/pi/start-tv-display-lxde
+
+SERVER=pjc-display-1.local
+CMDE="midori -e Fullscreen -a http://$SERVER:8080/tv"
+
+while true ; do
+    echo "Waiting for $SERVER..."
+    ping -c 1 $SERVER >/dev/null 2>&1
+    if [ $? -eq 0 ] ; then
+        $CMDE
+        exit 0
+    fi
+    sleep 1
+done
+
