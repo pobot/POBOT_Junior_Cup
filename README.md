@@ -4,7 +4,7 @@ POBOT Junior Cup - Gestion de la compétition
 Avertissement
 -------------
 
-Le projet n'a été publié sur ce repository pour être réutilisé tel quel, car il est spécifique à notre
+Le projet n'a pas été publié sur ce repository pour être réutilisé tel quel, car il est spécifique à notre
 compétition, et est de plus calé sur le règlement de l'édition 2014. L'adapter à d'autres règles de calcul est
 cependant très simple, l'objectif étant justement qu'il soit facilement réutilisable pour les éditions à venir.
 
