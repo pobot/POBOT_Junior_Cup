@@ -110,7 +110,7 @@ Décompresser le paquet Debian sans l'installer :
 
 L'arboresence système standard est alors créée dans la directory cible choisie (`pjc-compmgr` ici).
 
-### Installation des dépendances
+### Installation manuelle des dépendances
 
 #### Python
 
