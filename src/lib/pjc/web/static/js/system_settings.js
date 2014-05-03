@@ -6,7 +6,7 @@ $(document).ready(function() {
     $("button#synchronize").click(function(){
         var now = moment();
         $("input#date").val(now.format("DD/MM/YY"));
-        $("input#time").val(now.format("hh:mm"));
+        $("input#time").val(now.format("HH:mm"));
 
         // in case of a previous error display
         $("#msg_date").html("");
