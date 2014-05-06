@@ -28,7 +28,7 @@
             {% for score in scores %}
                 {% set num = score.team_num %}
                 <div id="team-row_{{ num }}" class="row team-row">
-                    <label class="control-label col-md-3">{{ score.team_name }}</label>
+                    <label class="control-label col-md-3">{{ num }} - {{ score.team_name }}</label>
                     <div class="row col-md-9">
                         {% set shown = score[2] %}
                         <div class="form-group col-md-2">
