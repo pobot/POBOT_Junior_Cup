@@ -137,7 +137,8 @@ Si l'application a été installée au niveau système, elle peut être démarr�
 
     sudo service pjc-compmgr start
 
-Le répertoire utilisé pour les données (fichier `tournament.dat`) est dans ce cas `/var/db/pjc-compmgr`.
+Le répertoire utilisé pour les données (fichier `tournament.dat`) est dans ce cas `/var/lib/pjc-compmgr` par défaut,
+ou le path spécifié via l'option `-d/--data-home` de la commande de lancement du script `webapp.py`.
 
 Si elle a été installée comme application utilisateur (cf paragraphe *Installation manuelle* ci-dessus) dans le
 répertoire `<app-dir>` le lancement s'effectue par :
@@ -146,6 +147,26 @@ répertoire `<app-dir>` le lancement s'effectue par :
     PYTHONPATH=./lib python bin/webapp.py
 
 Le répertoire de données est alors `$HOME/.pjc-compmgr/`.
+
+### Options de la ligne de commande
+
+Elles sont indiquées par l'aide en ligne :
+
+    usage: webapp.py [-h] [-D] [-d DATA_HOME]
+                     [--display-sequence DISPLAY_SEQUENCE]
+
+    POBOT Junior Cup Web application.
+
+    optional arguments:
+      -h, --help            show this help message and exit
+      -D, --debug           activates debug mode (default: False)
+      -d DATA_HOME, --data-home DATA_HOME
+                            data storage directory path (default: /home/pi/.pjc-
+                            compmgr)
+      --display-sequence DISPLAY_SEQUENCE
+                            TV display sequence (as a JSON array of page names)
+                            (default: ["progress", "scores"])
+
 
 Configuration des clients pour affichage TV
 -------------------------------------------
