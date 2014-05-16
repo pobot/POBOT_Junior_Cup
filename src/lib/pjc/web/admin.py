@@ -115,9 +115,13 @@ class SystemSettingsEditor(AdminUIHandler):
         s_date = self.get_argument('date').split('/')
         s_time = self.get_argument('time').split(':')
 
-        return_code = subprocess.call(["date", ''.join([s_date[1], s_date[0], s_time[0], s_time[1]])])
-        if return_code != 0 :
-            raise HTTPError(400, reason="code retour commande date = %d" % return_code)
+        try:
+            output = subprocess.check_output(
+                ["date", ''.join([s_date[1], s_date[0], s_time[0], s_time[1]])],
+                stderr=subprocess.STDOUT
+            )
+        except subprocess.CalledProcessError as e:
+            raise HTTPError(400, reason=e.output.split('\n')[0].strip())
 
 
 def MMSS_to_seconds(s):
