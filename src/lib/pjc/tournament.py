@@ -537,10 +537,30 @@ class Tournament(object):
                 result[team_num] = Tournament.CompiledScore(None, None, None, None, None)
         return result
 
+    def get_competing_teams(self):
+        """ Returns the list of teams which have really participated to the competition.
+
+        A team is considered to be participating if it played at least one round and has presented its
+        research work.
+
+        :returns: a list of team nums
+        """
+        comp_rob, comp_research, comp_jury = self.get_completion_status()
+        comp_rob = zip(*comp_rob)   # transposes the matrix
+        return [
+            t for t, c in enumerate(
+                [all((any(r), s)) for r, s in zip(comp_rob, comp_research)], start=1
+            ) if c
+        ]
+
     def get_final_ranking(self):
         """ Computes and returns the tournament final ranking, as a list of tuples, containing each the rank and
         corresponding list of team numbers.
+
+        Only competing teams are included in the final ranking result.
         """
+        competing_teams = self.get_competing_teams()
+
         robotics = self.get_robotics_results()
         research = self.get_research_evaluation_results()
         jury = self.get_team_evaluation_results()
@@ -554,7 +574,7 @@ class Tournament(object):
              jury.get(team_num, not_avail).rank +
              ScholarLevel.bonus_points(team.level)
             )
-            for team_num, team in enumerate(self._teams, start=1)
+            for team_num, team in enumerate(self._teams, start=1) if team_num in competing_teams
         ], self.team_count)
 
         # rearrange it

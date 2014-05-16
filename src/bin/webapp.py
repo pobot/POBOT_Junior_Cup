@@ -190,8 +190,10 @@ class PJCWebApp(tornado.web.Application):
             self._client_sequences = {}
 
     def required_pages(self, display):
-        # simplified version for the moment : all displays use the same page size
-        return ((self.tournament.team_count - 1) / self.TV_PAGE_SIZE) + 1
+        if display == 'ranking':
+            return ((len(self.tournament.get_competing_teams()) - 1) / self.TV_PAGE_SIZE) + 1
+        else:
+            return ((self.tournament.team_count - 1) / self.TV_PAGE_SIZE) + 1
 
     @property
     def title(self):
