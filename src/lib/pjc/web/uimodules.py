@@ -203,7 +203,8 @@ class RankingTable(UIModuleBase):
                     current_teams = []
                 current_rank = rank
             current_teams.append(team)
-        result.append(self.ResultItem(current_rank, get_names(current_teams)))
+        if current_rank is not None:
+            result.append(self.ResultItem(current_rank, get_names(current_teams)))
 
         return {
             'ranking': result
