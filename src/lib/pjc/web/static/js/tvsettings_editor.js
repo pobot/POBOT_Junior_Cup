@@ -1,8 +1,4 @@
 $(document).ready(function() {
-    var feedback = $('#feedback');
-
-    feedback.hide();
-
     $("#tvsettings").validate({
         submitHandler: function(form) {
             /* check if the sequence is not empty */
@@ -21,18 +17,15 @@ $(document).ready(function() {
                 type: 'POST',
                 data: $(form).serialize(),
                 success: function(data) {
-                    feedback
-                        .text("Modifications enregistrées.")
-                        .addClass('alert-success')
-                        .removeClass('alert-danger')
-                        .show();
+                    jSuccess('Modifications enregistrées');
                 },
                 error: function(jqXHR, textStatus, errorThrown) {
-                    feedback
-                        .text("Erreur pendant l'enregistrement des modifications : " + errorThrown)
-                        .addClass('alert-danger')
-                        .removeClass('alert-success')
-                        .show();
+                    jError(
+                        "Erreur pendant l'enregistrement des modifications : <br>" + errorThrown,
+                        {
+                            HideTimeEffect: 500
+                        }
+                    );
                 }
             });
         },

@@ -1,8 +1,4 @@
 $(document).ready(function() {
-    var feedback = $('#feedback');
-
-    feedback.hide();
-
     $("button#synchronize").click(function(){
         var now = moment();
         $("input#date").val(now.format("DD/MM/YY"));
@@ -23,18 +19,15 @@ $(document).ready(function() {
                 type: 'POST',
                 data: $(form).serialize(),
                 success: function(data) {
-                    feedback
-                        .text("Modifications enregistrées.")
-                        .addClass('alert-success')
-                        .removeClass('alert-danger')
-                        .show();
+                    jSuccess("Modifications enregistrées.");
                 },
                 error: function(jqXHR, textStatus, errorThrown) {
-                    feedback
-                        .text("Erreur pendant la mise à jour des paramètres : " + errorThrown)
-                        .addClass('alert-danger')
-                        .removeClass('alert-success')
-                        .show();
+                    jError(
+                        "Erreur pendant la mise à jour des paramètres : <br>" + errorThrown,
+                        {
+                            HideTimeEffect: 500
+                        }
+                    );
                 }
             });
         },
