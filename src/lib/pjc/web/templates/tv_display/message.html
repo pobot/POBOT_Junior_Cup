@@ -1,16 +1,16 @@
 {% set level, content = application.tv_message %}
 <div class="row message-box">
-    <div class="col-md-8 col-md-offset-2">
+    <div class="col-md-8 col-md-offset-2 col-lg-8 col-lg-offset-2">
         <div class="panel panel-{{level}}">
             <div class="panel-heading">
                 <h1 class="panel-title text-left">POBOT a un message pour vous</h1>
             </div>
             <div class="panel-body">
                 <div class="row">
-                    <div class="col-md-3">
+                    <div class="col-md-3 col-lg-3">
                         <img src="/img/pobot-logo-small.png">
                     </div>
-                    <div class="col-md-9">
+                    <div class="col-md-9 col-lg-9">
                         {% raw content %}
                     </div>
                 </div>

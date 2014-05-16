@@ -1,13 +1,32 @@
 * {
-    font-size: 110%;
+    font-size: 120%;
+}
+
+@media screen and (min-width: 1600px) {
+    .container {
+        width:  1570px;
+    }
 }
 
 div.banner {
     background: black;
 }
 
+div.page-title h1 {
+    font-weight: bold;
+}
+
 table.final-ranking {
     font-size: 120%;
+}
+
+table.final-ranking th,table.final-ranking td {
+    line-height: 1.2 !important;
+}
+
+table.final-ranking th {
+    padding: 8px 50px !important;
+    vertical-align: middle !important;
 }
 
 h1 {
@@ -17,4 +36,21 @@ h1 {
 
 div.message-box {
     margin-top: 150px;
+    font-size: 130%;
+}
+
+div.message-box h1.panel-title {
+    font-size: 80%;
+}
+
+div.system-error {
+    position: fixed;
+    top: 30%;
+    width: 100%;
+    font-size: 200%;
+    z-index: 99;
+}
+
+div.system-error div#error-message {
+    font-weight: bold;
 }
