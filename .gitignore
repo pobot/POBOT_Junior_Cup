@@ -2,4 +2,9 @@
 .idea
 assets
 build
+*.debdata/
+doc/
+tmp/
+data/*
 *.deb
+src/lib/pjc/web/static/img/pobot-logo-gray.png
