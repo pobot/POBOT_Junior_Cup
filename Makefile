@@ -57,7 +57,11 @@ update_build_tree:
 	# teams list
 	cp -a src/var/* $(BUILD_VAR_LIB)
 
+deploy: dist
+	scp $(DEBPKG_NAME).deb pi@pjc-display-1:
+
 clean:
 	@echo '------ cleaning all...'
 	rm -rf $(BUILD_ROOT) $(DEBPKG_NAME).deb
 
+.PHONY: clean dist deploy update_build_tree
