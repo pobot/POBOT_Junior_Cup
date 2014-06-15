@@ -1,4 +1,8 @@
 <style>
+    span.limit {
+        /* if not, seems to apply 120% * 120% */
+        font-size: 100%;
+    }
     span.late {
         color: red;
     }
@@ -13,14 +17,11 @@
 <table class="table table-striped table-bordered table-condensed status translucent">
     <thead>
     <tr>
-        <th rowspan="3">&nbsp;</th>
-        <th colspan="3">Robotique</th>
-        <th rowspan="2">Exposé</th>
-    </tr>
-    <tr>
-        <th>Epreuve 1</th>
-        <th>Epreuve 2</th>
-        <th>Epreuve 3</th>
+        <th rowspan="2">&nbsp;</th>
+        <th>Rob. 1</th>
+        <th>Rob. 2</th>
+        <th>Rob. 3</th>
+        <th>Exposé</th>
     </tr>
     <tr class="planning">
         <th>&rarr;&nbsp;<span id="planning_rob1" class="limit">{{ planning.rob1 }}</span></th>
@@ -32,7 +33,7 @@
     <tbody>
     {% for item in progress %}
     <tr>
-        <th>{{ item.team_num }} - {{ item.team_name }}</th>
+        <th class="team-name">{{ item.team_num }} - {{ item.team_name }}</th>
         <td><img src="/img/status-{{ item.rob1 }}.png"></td>
         <td><img src="/img/status-{{ item.rob2 }}.png"></td>
         <td><img src="/img/status-{{ item.rob3 }}.png"></td>
