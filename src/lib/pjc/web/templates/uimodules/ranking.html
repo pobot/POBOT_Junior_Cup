@@ -5,7 +5,7 @@
             {% for rank in ranking %}
             <tr {% if rank[0] == 1 %}class="winner"{% end %}>
                 <th>{{ rank[0] }}</th>
-                <td>
+                <td class="team-name">
                     {% for team in rank[1] %}
                     {{ team }}<br>
                     {% end %}
