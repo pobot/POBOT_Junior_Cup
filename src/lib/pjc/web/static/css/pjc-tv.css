@@ -17,16 +17,20 @@ div.page-title h1 {
 }
 
 table.final-ranking {
-    font-size: 120%;
+    font-size: 115%;
 }
 
 table.final-ranking th,table.final-ranking td {
-    line-height: 1.2 !important;
+    line-height: 1.1 !important;
 }
 
 table.final-ranking th {
     padding: 8px 50px !important;
     vertical-align: middle !important;
+}
+
+th.team-name, td.team-name {
+    white-space: nowrap;
 }
 
 h1 {
