@@ -14,7 +14,7 @@ import json
 import pjc.web.application
 
 
-APP_NAME = 'pjc-compmgr'
+APP_NAME = 'pjc-mc'
 
 if __name__ == '__main__':
     import argparse

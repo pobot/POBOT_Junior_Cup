@@ -1,11 +1,16 @@
 * {
-    font-size: 120%;
+    font-size: 117%;
 }
 
 @media screen and (min-width: 1600px) {
     .container {
         width:  1570px;
     }
+}
+
+div.navbar h2 {
+    font-weight: bold;
+    color: wheat;
 }
 
 div.banner {
@@ -31,6 +36,9 @@ table.final-ranking th {
 
 th.team-name, td.team-name {
     white-space: nowrap;
+    max-width: 200px !important;
+    overflow-x: hidden;
+    text-overflow: ellipsis;
 }
 
 h1 {

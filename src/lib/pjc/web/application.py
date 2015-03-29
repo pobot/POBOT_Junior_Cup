@@ -7,7 +7,7 @@ import threading
 import tornado.ioloop
 import tornado.web
 
-from pjc.pjc2014 import Round1Score, Round2Score, Round3Score
+from pjc.current_edition import Round1Score, Round2Score, Round3Score
 from pjc.tournament import Tournament, Team
 from pjc.web import admin, api, tv, uimodules
 

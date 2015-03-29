@@ -6,7 +6,7 @@
 
 SHELL=/bin/bash
 
-APP_NAME=pjc-compmgr
+APP_NAME=pjc-mc
 
 VERSION?=$(shell grep -e '^Version:' DEBIAN/control | cut -d' ' -f2 | tr -d [:blank:])
 DEBPKG_NAME?=$(APP_NAME)_$(VERSION)_all

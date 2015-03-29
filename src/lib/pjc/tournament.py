@@ -94,12 +94,12 @@ class RoboticsScore(Score):
     def evaluate(self):
         """ Return the total points for this round, based on time, successful actions and penalties.
         """
-        advance = 0
-        credit = self.evaluate_action_credits()
-        if credit == self.max_action_credits():
+        time_credit = 0
+        actions_credit = self.evaluate_action_credits()
+        if actions_credit >= self.max_action_credits():
             if self.total_time < MATCH_DURATION:
-                advance = MATCH_DURATION - self.total_time
-        return credit + advance
+                time_credit = MATCH_DURATION - self.total_time
+        return actions_credit + time_credit
 
 
 class ResearchEvaluationScore(Score):

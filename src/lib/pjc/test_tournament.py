@@ -4,7 +4,7 @@ from unittest import TestCase
 import json
 
 from pjc.tournament import *
-from src.lib.pjc.pjc2014 import *
+from pjc.current_edition import *
 
 
 __author__ = 'eric'

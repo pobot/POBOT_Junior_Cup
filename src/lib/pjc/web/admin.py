@@ -10,7 +10,7 @@ from pjc.web.ui import UIRequestHandler, ProgressDisplayHandler, ScoresDisplayHa
 from pjc.web.lib import parse_hhmm_time, format_hhmm_time
 from pjc.tournament import ResearchEvaluationScore, JuryEvaluationScore
 from pjc.web.tv import get_selectable_displays, SequencedDisplay
-import pjc.pjc2014 as edition
+from pjc.current_edition import Round1Score, Round2Score, Round3Score
 
 
 __author__ = 'eric'
@@ -286,17 +286,17 @@ class AdminRoboticsRoundScoreEditor(ScoreEditorHandler):
         self.application.save_tournament()
 
 
-@AdminRoboticsRoundScoreEditor.specs(score_data_type=edition.Round1Score, round_num=1)
+@AdminRoboticsRoundScoreEditor.specs(score_data_type=Round1Score, round_num=1)
 class AdminRoboticsRound1ScoreEditor(AdminRoboticsRoundScoreEditor):
     """ Editor for robotics rounds 1 scores."""
 
 
-@AdminRoboticsRoundScoreEditor.specs(score_data_type=edition.Round2Score, round_num=2)
+@AdminRoboticsRoundScoreEditor.specs(score_data_type=Round2Score, round_num=2)
 class AdminRoboticsRound2ScoreEditor(AdminRoboticsRoundScoreEditor):
     """ Editor for robotics rounds 2 scores."""
 
 
-@AdminRoboticsRoundScoreEditor.specs(score_data_type=edition.Round3Score, round_num=3)
+@AdminRoboticsRoundScoreEditor.specs(score_data_type=Round3Score, round_num=3)
 class AdminRoboticsRound3ScoreEditor(AdminRoboticsRoundScoreEditor):
     """ Editor for robotics rounds 3 scores."""
 

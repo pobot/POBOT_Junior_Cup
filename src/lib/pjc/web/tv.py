@@ -58,7 +58,7 @@ class TVContent(UIRequestHandler, SequencedDisplay):
     display_saved_context = {}
 
     def get(self):
-        client, port = self.request.connection.address
+        client, port = self.request.connection.context.address
 
         if self.application.client_is_known(client):
             current_display = self.get_argument("current_display", None)

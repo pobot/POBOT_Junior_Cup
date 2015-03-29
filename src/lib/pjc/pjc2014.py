@@ -3,7 +3,7 @@
 
 """ Module gathering the specialized implementations for 2014 edition rules
 """
-from pjc.tournament import RoboticsScore
+from .tournament import RoboticsScore
 
 __author__ = 'eric'
 
