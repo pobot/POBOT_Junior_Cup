@@ -8,3 +8,6 @@ tmp/
 data/*
 *.deb
 src/lib/pjc/web/static/img/pobot-logo-gray.png
+data-arch-2014
+screenshots
+sdcard/
