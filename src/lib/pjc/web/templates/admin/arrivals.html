@@ -1,0 +1,30 @@
+{% extends "../admin.html" %}
+
+{% block page_content %}
+
+{% module AdminPageTitle("Pointage des équipes") %}
+
+<style>
+    table.arrivals td.arrived {
+        background-image: url("/img/status-0.png");
+        background-repeat: no-repeat;
+        background-position: 2em;
+    }
+</style>
+
+<div class="row">
+    <div class="col-md-6 col-md-offset-3">
+        <table class="table table-striped translucent arrivals">
+            {% for num, name, arrived in arrivals %}
+            <tr>
+                <th class="text-right col-md-6">{{ num }} - {{ name }}</th>
+                <td class="col-md-6 {% if arrived %} arrived {% end %}">
+                    &nbsp;
+                </td>
+            </tr>
+            {% end %}
+        </table>
+    </div>
+</div>
+
+{% end %}

@@ -150,7 +150,7 @@ class TestTournament(TestCase):
             self._tournament.set_jury_evaluation(team_num, score)
 
     def test_get_teams(self):
-        self.assertEqual(self._tournament.team_count, len(self.TEAMS))
+        self.assertEqual(self._tournament.team_count(present_only=False), len(self.TEAMS))
 
     def test_get_completion_status(self):
         status = self._tournament.get_completion_status()
@@ -164,13 +164,13 @@ class TestTournament(TestCase):
     def test_get_global_result(self):
         print('* robotics rounds teams results : ')
         for i in xrange(1, 4):
-            print("%d : %s" % (i, self._tournament.get_robotics_round(i).get_results(self._tournament.team_count)))
+            print("%d : %s" % (i, self._tournament.get_robotics_round(i).get_results(self._tournament.team_count(present_only=True))))
         print('* robotics consolidated teams results :')
         print(self._tournament.get_robotics_results())
         print('* research teams results : ')
-        print(self._tournament.research_evaluations.get_results(self._tournament.team_count))
+        print(self._tournament.research_evaluations.get_results(self._tournament.team_count(present_only=True)))
         print('* jury evaluation results : ')
-        print(self._tournament.jury_evaluations.get_results(self._tournament.team_count))
+        print(self._tournament.jury_evaluations.get_results(self._tournament.team_count(present_only=True)))
         print('* teams bonus : ')
         print(self._tournament.get_teams_bonus())
 

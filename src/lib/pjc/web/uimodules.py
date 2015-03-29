@@ -118,18 +118,17 @@ class ProgressTable(UIModuleBase):
         # builds the progress display data structure, made of a list of team status tuples, each one containing
         # the tree-state status of the robotics rounds and the research presentation.
         progress = []
-        for team_num in tournament.team_nums:
-            team_name = tournament.get_team(team_num).name
+        for team in tournament.teams(present_only=True):
             robotics = [
                 self.DONE if s
                 else self.LATE if now > limit
                 else self.NOT_DONE
-                for s, limit in zip(status_rob[team_num-1], robotics_limits)
+                for s, limit in zip(status_rob[team.num-1], robotics_limits)
             ]
-            research = self.DONE if status_research[team_num-1] \
+            research = self.DONE if status_research[team.num-1] \
                 else self.LATE if now > research_limit \
                 else self.NOT_DONE
-            progress.append(self.Status(team_num, team_name, robotics[0], robotics[1], robotics[2], research))
+            progress.append(self.Status(team.num, team.name, robotics[0], robotics[1], robotics[2], research))
 
         return {
             "planning": planning,

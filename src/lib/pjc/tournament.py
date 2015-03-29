@@ -274,17 +274,24 @@ class ScholarLevel(object):
         return cls.POST_BAC <= level <= cls.CM1
 
 
-class Team(namedtuple('Team', 'name level')):
+class Team(namedtuple('Team', 'num name level')):
+    present = False
+
     def as_dict(self):
         return {
+            'num': self.num,
             'name': self.name,
             'level': ScholarLevel.labels[self.level],
-            'bonus': ScholarLevel.bonus_points(self.level)
+            'bonus': ScholarLevel.bonus_points(self.level),
+            'present': self.present
         }
 
     @property
     def bonus(self):
         return ScholarLevel.bonus_points(self.level)
+
+    def __repr__(self):
+        return "%d - %s" % (self.num, self.name)
 
 
 class DuplicatedTeam(Exception):
@@ -298,9 +305,7 @@ class Tournament(object):
 
     def __init__(self, robotics_score_types):
         self._robotics_score_types = robotics_score_types
-        self._teams = []
-        self._team_count = 0
-        self._team_numbers = []
+        self._teams = {}
         self._robotics_rounds = [Round(score_type) for score_type in robotics_score_types]
         self._research_evaluations = Round(ResearchEvaluationScore)
         self._jury_evaluations = Round(JuryEvaluationScore)
@@ -330,46 +335,46 @@ class Tournament(object):
         :raises DuplicatedTeam: if team already present
         :raises ValueError: if scholar level is invalid
         """
-        if team in self._teams:
-            raise DuplicatedTeam(team.name)
+        if team.num in self._teams:
+            raise DuplicatedTeam(team)
 
-        self._teams.append(team)
-        self._team_count += 1
-        self._team_numbers = range(1, self.team_count + 1)
-        return self._team_count
+        self._teams[team.num] = team
+        return self.team_count(present_only=False)
 
-    def load_teams(self, data):
-        teams = []
-        for name, level in data:
-            teams.append(Team(name, level))
+    def load_teams(self, dct):
+        teams = {}
+        for num, details in dct.iteritems():
+            name, level, present = details
+            team = Team(int(num), name, level)
+            team.present = present
+            self.add_team(team)
 
-            self._teams = teams
-            self._team_count = len(self._teams)
-            self._team_numbers = range(1, self.team_count + 1)
-
-    @property
-    def team_count(self):
+    def team_count(self, present_only=True):
         """ The teams count.
         """
-        return self._team_count
+        if present_only:
+            return len(self.teams(present_only=True))
+        else:
+            return len(self._teams)
 
-    @property
-    def team_nums(self):
-        """ The team numbers.
-        """
-        return self._team_numbers
-
-    @property
-    def teams(self):
+    def teams(self, present_only=True):
         """ The team list sorted by team number.
+
+        :param boolean present_only: if true the result contains present teams only
         """
-        return self._teams
+        if present_only:
+            return sorted([t for t in self._teams.itervalues() if t.present], key=lambda t : t.num)
+        else:
+            return sorted(self._teams.itervalues(), key=lambda t : t.num)
+
+    def team_nums(self, present_only=False):
+        return sorted([ team.num for team in self.teams(present_only=present_only)])
 
     def get_team(self, team_num):
-        if 0 < team_num <= self.team_count:
-            return self._teams[team_num-1]
-        else:
-            raise KeyError("invalid team num (%d)" % team_num)
+        return self._teams[team_num]
+
+    def register_abandon(self, team_num):
+        self._teams[team_num].abandon = True
 
     @property
     def research_evaluations(self):
@@ -446,13 +451,14 @@ class Tournament(object):
         or not.
         """
         robotics = []
+        all_team_nums = self.team_nums(present_only=False)
         for round_num, _round in enumerate(self._robotics_rounds, start=1):
             teams = _round.get_completed_teams()
-            robotics.append(tuple(n in teams for n in self.team_nums))
+            robotics.append(tuple(n in teams for n in all_team_nums))
         robotics = tuple(robotics)
 
-        research = tuple(n in self._research_evaluations.get_completed_teams() for n in self.team_nums)
-        jury_evaluation = tuple(n in self._jury_evaluations.get_completed_teams() for n in self.team_nums)
+        research = tuple(n in self._research_evaluations.get_completed_teams() for n in all_team_nums)
+        jury_evaluation = tuple(n in self._jury_evaluations.get_completed_teams() for n in all_team_nums)
 
         return Tournament.Status(robotics, research, jury_evaluation)
 
@@ -462,18 +468,19 @@ class Tournament(object):
          It is returned as a dictionary of RoundScorePoints, keyed by the team number
         """
         total_points = {}
+        teams_count = self.team_count(present_only=False)
         for _round in self._robotics_rounds:
-            _res = _round.get_ranking_points(self.team_count)
+            _res = _round.get_ranking_points(teams_count)
             for team, points in _res:
                 if team in total_points:
                     total_points[team] += points
                 else:
                     total_points[team] = points
 
-        ranking_points = dict(get_ranking_points(total_points.items(), self.team_count))
+        ranking_points = dict(get_ranking_points(total_points.items(), teams_count))
         return dict([
             (team_num, RoundScorePoints(total_points.get(team_num, 0), ranking_points.get(team_num, 0)))
-            for team_num in self.team_nums
+            for team_num in self.team_nums(present_only=False)
         ])
 
     def get_research_evaluation_results(self):
@@ -481,14 +488,14 @@ class Tournament(object):
 
         It is returned as a dictionary of RoundScorePoints, keyed by the team number
         """
-        return self._research_evaluations.get_results(self.team_count)
+        return self._research_evaluations.get_results(self.team_count(present_only=False))
 
     def get_team_evaluation_results(self):
         """ Returns the team overall evaluation made by the jury.
 
         It is returned as a dictionary of RoundScorePoints, keyed by the team number
         """
-        return self._jury_evaluations.get_results(self.team_count)
+        return self._jury_evaluations.get_results(self.team_count(present_only=False))
 
     def get_teams_bonus(self):
         """ Returns the list of teams bonus.
@@ -498,7 +505,7 @@ class Tournament(object):
     CompiledScore = namedtuple('CompiledScore', 'rob1 rob2 rob3 research jury')
 
     def get_compiled_scores(self):
-        """ Returns the compiled scores for all the teams as a dictionary keyed by the team number which
+        """ Returns the compiled scores for all the present teams as a dictionary keyed by the team number which
           associated value is a CompiledScore named tuple.
         """
         wrk = dict()
@@ -523,7 +530,7 @@ class Tournament(object):
             team_scores['jury'] = score.evaluate()
 
         result = dict()
-        for team_num in self.team_nums:
+        for team_num in [team.num for team in self.teams(present_only=True)]:
             if team_num in wrk:
                 scores = wrk[team_num]
                 result[team_num] = Tournament.CompiledScore(
@@ -572,10 +579,10 @@ class Tournament(object):
              robotics.get(team_num, not_avail).rank +
              research.get(team_num, not_avail).rank +
              jury.get(team_num, not_avail).rank +
-             ScholarLevel.bonus_points(team.level)
+             ScholarLevel.bonus_points(team.level)  #TODO should be processed like other items to keep a constant weight whatever is the team count
             )
-            for team_num, team in enumerate(self._teams, start=1) if team_num in competing_teams
-        ], self.team_count)
+            for team_num, team in self._teams.iteritems() if team_num in competing_teams
+        ], self.team_count(present_only=True))
 
         # rearrange it
         result = []

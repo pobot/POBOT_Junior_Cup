@@ -47,6 +47,35 @@ class AdminRankingReport(AdminUIHandler, RankingDisplayHandler):
     pass
 
 
+class AdminArrivalsReport(AdminUIHandler):
+
+    @property
+    def template_name(self):
+        return "arrivals"
+
+    @property
+    def template_args(self):
+        arrivals = []
+        for team_num in self.tournament.team_nums():
+            team = self.tournament.get_team(team_num)
+            arrivals.append((team_num, team.name, team.present))
+        return {
+            "arrivals": arrivals
+        }
+
+
+class AdminArrivalsEditor(AdminArrivalsReport):
+    @property
+    def template_name(self):
+        return "arrivals_editor"
+
+    def post(self):
+        checked_boxes = [arg.split('=')[0] for arg in self.request.body.split('&')]
+        arrived_teams = [int(n.split('_')[1]) for n in checked_boxes]
+        for team_num in self.tournament.team_nums:
+            self.tournament.get_team(team_num).present = team_num in arrived_teams
+
+
 class AdminPlanningEditor(AdminUIHandler):
     FORM_FIELDS = ('rob1', 'rob2', 'rob3', 'research')
 
@@ -225,24 +254,23 @@ class AdminRoboticsRoundScoreEditor(ScoreEditorHandler):
     def template_args(self):
         round_ = self.tournament.get_robotics_round(self.round_num)
         form_data = []
-        for team_num in self.tournament.team_nums:
-            team_name = self.tournament.get_team(team_num).name
+        for team in self.tournament.teams(present_only=True):
             try:
-                score = round_.get_team_score(team_num)
+                score = round_.get_team_score(team.num)
             except KeyError:
                 # team did not played the round yet
                 score = round_.score_type()
 
             # get the match duration as a "m:ss" string (no tens of minutes)
             duration = str(timedelta(seconds=score.total_time)).split(':', 1)[-1][1:]
-            form_data.append(self.ScoreTemplateData(team_num, team_name, duration,*(score.as_tuple()[1:])))
+            form_data.append(self.ScoreTemplateData(team.num, team.name, duration,*(score.as_tuple()[1:])))
         return {
             'scores': form_data
         }
 
     def post(self):
         round_ = self.tournament.get_robotics_round(self.round_num)
-        for team_num in self.tournament.team_nums:
+        for team_num in self.tournament.team_nums(present_only=True):
             total_time = MMSS_to_seconds(self.get_argument('total_time_%d' % team_num))
             if total_time:
                 score = round_.score_type(
@@ -281,15 +309,14 @@ class EvaluationScoreEditor(ScoreEditorHandler):
     def template_args(self):
         evaluations = self.get_evaluations()
         form_data = []
-        for team_num in self.tournament.team_nums:
-            team_name = self.tournament.get_team(team_num).name
+        for team in self.tournament.teams(present_only=True):
             try:
-                score = evaluations.get_team_score(team_num)
+                score = evaluations.get_team_score(team.num)
             except KeyError:
                 # team did not played the round yet
                 score = evaluations.score_type()
 
-            form_data.append(self.ScoreTemplateData(team_num, team_name, *(score.as_tuple())))
+            form_data.append(self.ScoreTemplateData(team.num, team.name, *(score.as_tuple())))
         return {
             'scores': form_data
         }
@@ -317,7 +344,7 @@ class AdminResearchScoreEditor(EvaluationScoreEditor):
         evaluation_fields = self.score_fields[1:]
 
         evaluations = self.get_evaluations()
-        for team_num in self.tournament.team_nums:
+        for team_num in self.tournament.team_nums(present_only=True):
             shown = self.get_argument('%s_%d' % (shown_fld, team_num), None) is not None
             if shown:
                 score = evaluations.score_type(
@@ -346,6 +373,7 @@ handlers = [
     (r"/admin/report/progress", AdminProgress),
     (r"/admin/report/scores", AdminScoresReport),
     (r"/admin/report/ranking", AdminRankingReport),
+    (r"/admin/report/arrivals", AdminArrivalsReport),
     (r"/admin/settings/planning", AdminPlanningEditor),
     (r"/admin/settings/tv_display", TVDisplaySettingsEditor),
     (r"/admin/settings/system", SystemSettingsEditor),
@@ -354,5 +382,6 @@ handlers = [
     (r"/admin/scores/rob3", AdminRoboticsRound3ScoreEditor),
     (r"/admin/scores/research", AdminResearchScoreEditor),
     (r"/admin/scores/jury", AdminJuryScoreEditor),
+    (r"/admin/arrivals", AdminArrivalsEditor),
 ]
 
