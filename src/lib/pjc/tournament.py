@@ -310,10 +310,10 @@ class Tournament(object):
         self._research_evaluations = Round(ResearchEvaluationScore)
         self._jury_evaluations = Round(JuryEvaluationScore)
         self._planning = [
-            datetime.time(14, 30),
-            datetime.time(15, 45),
-            datetime.time(19, 30),
-            datetime.time(20, 30)
+            datetime.time(15, 00),  # time limit for round 1 matches
+            datetime.time(16, 00),  # time limit for round 2 matches
+            datetime.time(17, 00),  # time limit for round 3 matches
+            datetime.time(17, 00)   # time limit for presentations
         ]
 
     @property
