@@ -30,7 +30,7 @@ class UIModuleBase(UIModule):
         """
         raise NotImplementedError()
 
-    def get_template_args(self, application, **kwargs):
+    def get_template_args(self, application, *args, **kwargs):
         """ Returns the keyword arguments to be passed to the body template as a dictionary.
 
         :rtype: dict
@@ -55,7 +55,7 @@ class AdminPageTitle(UIModuleBase):
     def template_name(self):
         return "admin_page_title"
 
-    def render(self, title):
+    def render(self, title, *args, **kwargs):
         return self.render_string(
             self.make_template_path(),
             title=title
@@ -67,10 +67,12 @@ class TVDisplayPageTitle(UIModuleBase):
     def template_name(self):
         return "display_page_title"
 
-    def render(self, title):
+    def render(self, title, page_count=1, page_num=1, *args, **kwargs):
         return self.render_string(
             self.make_template_path(),
-            title=title
+            title=title,
+            page_count=page_count,
+            page_num=page_num
         )
 
 
@@ -136,6 +138,48 @@ class ProgressTable(UIModuleBase):
         }
 
 
+class NextSchedules(UIModuleBase):
+    Schedule = namedtuple('Schedule', 'team_num team_name what when')
+
+    WHAT_LABELS = ['Epreuve 1', 'Epreuve 2', 'Epreuve 3', 'Exposé']
+
+    @property
+    def template_name(self):
+        return "next_schedules"
+
+    def get_template_args(self, application, tv_display=False, *args, **kwargs):
+        # now = (datetime.datetime.now() - datetime.timedelta(hours=3, minutes=15)).time()
+        now = datetime.datetime.now().time()
+        next_appts = sorted([
+            (time, team, team.planning.index(time))
+            for team in application.tournament.teams(present_only=True)
+            for time in team.planning if time >= now
+        ])
+
+        def emergency(t):
+            t_s, now_s = (_t.hour * 3600 + _t.minute * 60 + _t.second for _t in (t, now))
+            dt = (t_s - now_s) / 60
+            if dt > 10:
+                return ''
+            elif dt > 5:
+                return 'text-warning'
+            else:
+                return 'text-danger'
+
+        return {
+            'schedules': [
+                self.Schedule(
+                    team.num,
+                    team.name,
+                    self.WHAT_LABELS[what],
+                    when
+                )
+                for when, team, what in (next_appts[:6] if tv_display else next_appts)
+            ],
+            'emergency_class': emergency
+        }
+
+
 class ScoresTable(UIModuleBase):
     """ Current scores table
     """
@@ -161,7 +205,7 @@ class ScoresTable(UIModuleBase):
             ]
         ]
         return {
-            "scores_data": paginate(scores_data, page_num, application.TV_PAGE_SIZE) if tv_display  else scores_data
+            "scores_data": paginate(scores_data, page_num, application.TV_PAGE_SIZE) if tv_display else scores_data
         }
 
 
@@ -219,3 +263,4 @@ class FormButtons(UIModuleBase):
         return self.render_string(
             self.make_template_path()
         )
+

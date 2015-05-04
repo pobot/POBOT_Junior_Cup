@@ -5,13 +5,15 @@ __author__ = 'Eric Pascual'
 
 import argparse
 import csv
+from collections import namedtuple
 
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, PageBreak, Image, ListFlowable
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib import colors
 from reportlab.lib.units import inch
 from reportlab.lib.enums import *
 
+TeamData = namedtuple('TeamData', 'num name level school city dept match1 match2 match3 jury check')
 
 default_table_style = [
     ('FONTNAME', (0, 0), (-1, -1), 'Helvetica-Bold'),
@@ -43,6 +45,18 @@ team_school_style = ParagraphStyle(
 logo_left = Image('logo_left.png', width=0.84 * inch, height=0.79 * inch)
 logo_right = Image('logo_right.png', width=0.95 * inch, height=0.79 * inch)
 
+cell_body = ParagraphStyle(
+    'cell_header',
+    fontName='Helvetica',
+    fontSize=12
+)
+
+cell_header = ParagraphStyle(
+    'cell_header',
+    parent=cell_body,
+    fontName='Helvetica-Bold'
+)
+
 
 def make_header(title):
     return [
@@ -68,26 +82,24 @@ def make_header(title):
     ]
 
 
-def make_team_header(number, name, school):
+def make_team_header(team):
     return [
-        Paragraph("%s - %s" % (number, name), team_name_style),
-        Paragraph(school, team_school_style),
+        Paragraph("%s - %s" % (team.num, team.name), team_name_style),
+        Paragraph("%s - %s" % (team.school or '<i>équipe open</i>', team.level), team_school_style),
         Spacer(0, 0.5 * inch)
     ]
 
 
-def generate_match_sheets(data_fp):
+def generate_match_sheets(data):
     doc = SimpleDocTemplate(
         filename='match_sheets.pdf'
     )
     page_header = make_header('Feuille de match')
     story = []
 
-    data_fp.seek(0)
-    rdr = csv.DictReader(data_fp)
-    for record in rdr:
+    for team in data:
         story.extend(page_header)
-        story.extend(make_team_header(record["Number"], record["Name"], record["School"]))
+        story.extend(make_team_header(team))
 
         for i, match_name in enumerate(('vitesse', 'confort')):
             story.append(Table(
@@ -137,29 +149,16 @@ def generate_match_sheets(data_fp):
     doc.build(story)
 
 
-def generate_jury_sheets(data_fp):
+def generate_jury_sheets(data):
     doc = SimpleDocTemplate(
         filename='jury_sheets.pdf'
     )
     page_header = make_header('Dossier de recherche')
     story = []
 
-    cell_header = ParagraphStyle(
-        'cell_header',
-        fontName='Helvetica-Bold',
-        fontSize=12
-    )
-    cell_body = ParagraphStyle(
-        'cell_header',
-        fontName='Helvetica',
-        fontSize=12
-    )
-
-    data_fp.seek(0)
-    rdr = csv.DictReader(data_fp)
-    for record in rdr:
+    for team in data:
         story.extend(page_header)
-        story.extend(make_team_header(record["Number"], record["Name"], record["School"]))
+        story.extend(make_team_header(team))
 
         story.append(Table(
             [
@@ -175,7 +174,7 @@ def generate_jury_sheets(data_fp):
 
         story.append(Table(
             [
-                ['Points évalués', '', Paragraph('<para align=center><b>Note</b> (sur 20)</para>', style=cell_body)],
+                ['Points évalués', '', Paragraph('<para align=center><b>Note</b> (sur 20)', style=cell_body)],
                 ['1', [
                     Paragraph('Pertinence du sujet choisi', style=cell_header),
                     Paragraph(
@@ -201,7 +200,7 @@ def generate_jury_sheets(data_fp):
                         Paragraph("quelques mots sur la place de la robotique dans l'établissement", style=cell_body),
                     ], bulletType='bullet', start='-')
                 ]],
-                [Paragraph("<para align=right><b>Total des points</b> (sur 80)</para>", style=cell_body), '']
+                [Paragraph("<para align=right><b>Total des points</b> (sur 80)", style=cell_body), '']
             ],
             colWidths=[0.34 * inch, 3.97 * inch, 2.38 * inch],
             style=default_table_style + [
@@ -220,29 +219,16 @@ def generate_jury_sheets(data_fp):
     doc.build(story)
 
 
-def generate_approval_sheets(data_fp):
+def generate_approval_sheets(data):
     doc = SimpleDocTemplate(
         filename='approval_sheets.pdf'
     )
     page_header = make_header("Fiche d'homologation")
     story = []
 
-    cell_header = ParagraphStyle(
-        'cell_header',
-        fontName='Helvetica-Bold',
-        fontSize=12
-    )
-    cell_body = ParagraphStyle(
-        'cell_header',
-        fontName='Helvetica',
-        fontSize=12
-    )
-
-    data_fp.seek(0)
-    rdr = csv.DictReader(data_fp)
-    for record in rdr:
+    for team in data:
         story.extend(page_header)
-        story.extend(make_team_header(record["Number"], record["Name"], record["School"]))
+        story.extend(make_team_header(team))
 
         story.append(Table(
             [
@@ -260,8 +246,8 @@ def generate_approval_sheets(data_fp):
             [
                 ["Le robot ne comporte qu'une seule brique programmable"],
                 [Paragraph(
-                    "<para>Aucun moyen de solidification du robot n'est utilisé dans la construction<br/>"
-                    "<i>(vis, colle, autocollants, adhésif,...)</i></para>",
+                    "Aucun moyen de solidification du robot n'est utilisé dans la construction<br/>"
+                    "<i>(vis, colle, autocollants, adhésif,...)</i>",
                     style=cell_body), ''
                 ],
                 [Paragraph(
@@ -303,6 +289,37 @@ def generate_approval_sheets(data_fp):
     doc.build(story)
 
 
+def generate_time_tables(data):
+    doc = SimpleDocTemplate(
+        filename='time_tables.pdf'
+    )
+    page_header = make_header("Heures de passage")
+    story = []
+
+    for team in data:
+        story.extend(page_header)
+        story.extend(make_team_header(team))
+
+        story.append(Table(
+            [
+                ['Epreuve 1', team.match1],
+                ['Epreuve 2', team.match2],
+                ['Epreuve 3', team.match3],
+                ['Exposé', team.jury],
+            ],
+            colWidths=[6.7 / 2 * inch] * 2,
+            style=default_table_style + [
+                ('BACKGROUND', (0, 0), (0, -1), cell_bkgnd_color),
+                ('ALIGN', (0, 0), (0, -1), 'RIGHT'),
+                ('ALIGN', (1, 0), (1, -1), 'CENTER')
+            ]
+        ))
+
+        story.append(PageBreak())
+
+    doc.build(story)
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Match sheets generator")
 
@@ -312,11 +329,17 @@ if __name__ == '__main__':
                         default='teams.csv')
     args = parser.parse_args()
 
+    rdr = csv.reader(args.data)
+    _data = [TeamData(*f) for f in rdr]
+
     print('generating match sheets...')
-    generate_match_sheets(args.data)
+    generate_match_sheets(_data)
 
     print('generating jury sheets...')
-    generate_jury_sheets(args.data)
+    generate_jury_sheets(_data)
 
     print('generating approval sheets...')
-    generate_approval_sheets(args.data)
+    generate_approval_sheets(_data)
+
+    print('generating time tables...')
+    generate_time_tables(_data)

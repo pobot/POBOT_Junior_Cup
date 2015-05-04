@@ -25,30 +25,32 @@
                 {% end %}
                 </div>
             </div>
-            {% for score in scores %}
-                {% set num = score.team_num %}
-                <div id="team-row_{{ num }}" class="row team-row">
-                    <label class="control-label col-md-3">{{ num }} - {{ score.team_name }}</label>
-                    <div class="row col-md-9">
-                        {% set shown = score[2] %}
-                        <div class="form-group col-md-2">
-                            <span class="input-group-addon">
-                                <input type="checkbox" id="shown_{{num}}" name="shown_{{num}}" {{ "checked" if shown else "" }} >
-                            </span>
-                        </div>
-                        {% set points = score[3:] %}
-                        {% for i, fld in enumerate(('topic', 'research', 'presentation', 'poster')) %}
-                            {% set id_name = "%s_%d" % (fld, num) %}
+            <div class="score-editor-scroller">
+                {% for score in scores %}
+                    {% set num = score.team_num %}
+                    <div id="team-row_{{ num }}" class="row team-row">
+                        <label class="control-label col-md-3">{{ num }} - {{ score.team_name }}</label>
+                        <div class="row col-md-9">
+                            {% set shown = score[2] %}
                             <div class="form-group col-md-2">
-                                <input class="form-control digits" id="{{ id_name }}" name="{{ id_name }}"
-                                       placeholder="0" style="text-align:center"
-                                       min="0" max="20"
-                                       type="text" required value="{{ points[i] }}">
+                                <span class="input-group-addon">
+                                    <input type="checkbox" id="shown_{{num}}" name="shown_{{num}}" {{ "checked" if shown else "" }} >
+                                </span>
                             </div>
-                        {% end %}
+                            {% set points = score[3:] %}
+                            {% for i, fld in enumerate(('topic', 'research', 'presentation', 'poster')) %}
+                                {% set id_name = "%s_%d" % (fld, num) %}
+                                <div class="form-group col-md-2">
+                                    <input class="form-control digits" id="{{ id_name }}" name="{{ id_name }}"
+                                           placeholder="0" style="text-align:center"
+                                           min="0" max="20"
+                                           type="text" required value="{{ points[i] }}">
+                                </div>
+                            {% end %}
+                        </div>
                     </div>
-                </div>
-            {% end %}
+                {% end %}
+            </div>
 
             <div class="row has-error">
                 <label id="validation_errors" class="col-md-offset-3 control-label">&nbsp;</label>

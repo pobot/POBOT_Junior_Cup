@@ -110,7 +110,8 @@ class TVContent(UIRequestHandler, SequencedDisplay):
             "%s/%s.html" % (self.TEMPLATES_DIR, next_display),
             application=self.application,
             page_num=next_page,
-            page_size=self.application.TV_PAGE_SIZE
+            page_size=self.application.TV_PAGE_SIZE,
+            page_count=self.application.required_pages(next_display)
         )
         self.write({
             'display_name': next_display,
@@ -118,6 +119,7 @@ class TVContent(UIRequestHandler, SequencedDisplay):
             'content': html,
             'delay': self._delay,
             'clock': datetime.datetime.now().strftime("%H:%M")
+
         })
         self.finish()
 
@@ -126,7 +128,8 @@ def get_selectable_displays():
     displays = (
         ('scores', 'Scores'),
         ('progress', 'Avancement'),
-        ('ranking', 'Classement')
+        ('ranking', 'Classement'),
+        ('next_schedules', 'Prochains passages')
     )
     return sorted(displays, key=itemgetter(1))
 

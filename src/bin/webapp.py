@@ -49,7 +49,7 @@ if __name__ == '__main__':
             '--display-sequence',
             help='TV display sequence (as a JSON array of page names)',
             dest='display_sequence',
-            default='["progress", "scores"]')
+            default='["progress", "scores", "next_schedules"]')
         cli_args = parser.parse_args()
 
         if cli_args.debug:

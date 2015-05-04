@@ -84,6 +84,22 @@ class ProgressDisplayHandler(UIRequestHandler):
         }
 
 
+class NextSchedulesDisplayHandler(UIRequestHandler):
+    """ Displays the next teams scheduled for matches or presentations.
+    """
+    @property
+    def template_name(self):
+        # depending on the context (TV display or administration application), the template file will be
+        # looked for in the associated directory, and thus can be customized to fit the display needs.
+        return "next_schedules"
+
+    @property
+    def template_args(self):
+        return {
+            "application": self.application
+        }
+
+
 class ScoresDisplayHandler(UIRequestHandler):
     """ Shared request handler for displaying the current scores report.
 

@@ -18,11 +18,11 @@
             <fieldset>
                 <div class="form-group">
                     <ul class="pager" style="margin:0px">
-                        <li id="page-up" class="previous"><a href="#">&lt;&lt;</a></li>
-                        <li id="page-down" class="next"><a href="#">&gt;&gt;</a></li>
+                        <li id="page-down" class="previous"><a href="#">&lt;&lt;</a></li>
+                        <li id="page-up" class="next"><a href="#">&gt;&gt;</a></li>
                     </ul>
                     <label
-                            class="col-md-3 col-md-offset-5 control-label text-left"
+                            class="col-md-3 col-md-offset-5 control-label text-center"
                             style="position:absolute;top:0px;">Equipe arrivée ?</label>
                 </div>
                 <div class="form-group">
@@ -31,7 +31,7 @@
                         <label class="control-label col-md-5">{{ num }} - {{ name }}</label>
                         <div class="col-md-3">
                             <span class="input-group-addon">
-                                <input type="checkbox" id="arrived_{{num}}" name="arrived_{{num}}" {{ "checked" if arrived else "" }} >
+                                <input type="checkbox" id="arrived_{{num}}" name="arrived_{{num}}" {{ "checked" if arrived else "" }} />
                             </span>
                         </div>
                     </div>

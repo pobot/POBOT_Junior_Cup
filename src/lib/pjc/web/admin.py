@@ -6,7 +6,8 @@ from datetime import datetime, timedelta
 import subprocess
 from tornado.web import HTTPError
 
-from pjc.web.ui import UIRequestHandler, ProgressDisplayHandler, ScoresDisplayHandler, RankingDisplayHandler
+from pjc.web.ui import UIRequestHandler, ProgressDisplayHandler, ScoresDisplayHandler, \
+    RankingDisplayHandler, NextSchedulesDisplayHandler
 from pjc.web.lib import parse_hhmm_time, format_hhmm_time
 from pjc.tournament import ResearchEvaluationScore, JuryEvaluationScore
 from pjc.web.tv import get_selectable_displays, SequencedDisplay
@@ -36,6 +37,10 @@ class AdminHome(AdminUIHandler):
 
 
 class AdminProgress(AdminUIHandler, ProgressDisplayHandler):
+    pass
+
+
+class AdminNextSchedules(AdminUIHandler, NextSchedulesDisplayHandler):
     pass
 
 
@@ -70,10 +75,14 @@ class AdminArrivalsEditor(AdminArrivalsReport):
         return "arrivals_editor"
 
     def post(self):
-        checked_boxes = [arg.split('=')[0] for arg in self.request.body.split('&')]
-        arrived_teams = [int(n.split('_')[1]) for n in checked_boxes]
-        for team_num in self.tournament.team_nums:
+        if self.request.body:
+            checked_boxes = [arg.split('=')[0] for arg in self.request.body.split('&')]
+            arrived_teams = [int(n.split('_')[1]) for n in checked_boxes]
+        else:
+            arrived_teams = []
+        for team_num in self.tournament.team_nums():
             self.tournament.get_team(team_num).present = team_num in arrived_teams
+        self.application.save_tournament()
 
 
 class AdminPlanningEditor(AdminUIHandler):
@@ -371,6 +380,7 @@ class AdminJuryScoreEditor(EvaluationScoreEditor):
 handlers = [
     (r"/", AdminHome),
     (r"/admin/report/progress", AdminProgress),
+    (r"/admin/report/next_schedules", AdminNextSchedules),
     (r"/admin/report/scores", AdminScoresReport),
     (r"/admin/report/ranking", AdminRankingReport),
     (r"/admin/report/arrivals", AdminArrivalsReport),

@@ -1,3 +1,8 @@
 <div class="well well-sm text-center page-title">
-    <h1 class="text-success">{{ title }}</h1>
+    <h1 class="text-success">
+        <span>{{ title }}</span>
+        {% if page_count > 1 %}
+        <span class="page-count">({{ page_num }}/{{ page_count }})</span>
+        {% end %}
+    </h1>
 </div>

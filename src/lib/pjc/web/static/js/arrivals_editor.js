@@ -17,12 +17,12 @@ $(document).ready(function() {
             $("div#team-row_" + i).show();
         }
 
-        if (page_start > 1) {
+        if (page_start <= teams_count - PAGE_LENGTH) {
             $("#page-up").removeClass("disabled");
         } else {
             $("#page-up").addClass("disabled");
         }
-        if (page_start < teams_count - PAGE_LENGTH) {
+        if (page_start > 1) {
             $("#page-down").removeClass("disabled");
         } else {
             $("#page-down").addClass("disabled");
@@ -30,7 +30,10 @@ $(document).ready(function() {
     }
     paginate();
 
-    $("li#page-up a").click(function(){
+    $("li#page-down a").click(function(){
+        if ($(this).hasClass('disabled')) {
+            return;
+        }
         if (page_start > PAGE_LENGTH) {
             page_start -= PAGE_LENGTH;
         }
@@ -38,8 +41,11 @@ $(document).ready(function() {
     });
 
 
-    $("li#page-down a").click(function(){
-        if (page_start < teams_count - PAGE_LENGTH) {
+    $("li#page-up a").click(function(){
+        if ($(this).hasClass('disabled')) {
+            return;
+        }
+        if (page_start <= teams_count - PAGE_LENGTH) {
             page_start += PAGE_LENGTH;
         }
         paginate();

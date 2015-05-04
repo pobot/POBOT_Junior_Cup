@@ -10,7 +10,7 @@
 
 div.navbar h2 {
     font-weight: bold;
-    color: wheat;
+    color: silver;
 }
 
 div.banner {
@@ -65,4 +65,11 @@ div.system-error {
 
 div.system-error div#error-message {
     font-weight: bold;
+}
+
+div.page-title span.page-count {
+    font-weight: normal !important;
+    float: right;
+    color: silver;
+    font-size: 100%;
 }

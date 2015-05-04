@@ -1,14 +1,16 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
 import json
 import logging
 import os
 import threading
 import tornado.ioloop
 import tornado.web
+import csv
+from collections import namedtuple
 
 from pjc.current_edition import Round1Score, Round2Score, Round3Score
-from pjc.tournament import Tournament, Team
+from pjc.tournament import Tournament, Team, ScholarLevel
 from pjc.web import admin, api, tv, uimodules
 
 __author__ = 'Eric Pascual'
@@ -17,8 +19,10 @@ __author__ = 'Eric Pascual'
 class PJCWebApp(tornado.web.Application):
     """ The Web application
     """
-    TOURNAMENT_DAT = 'tournament.dat'
-    TEAMS_CFG = 'teams.cfg'
+    TOURNAMENT_DATA_FILE = 'tournament.dat'
+
+    TEAMS_DATA_FILE = 'teams.csv'
+    TeamData = namedtuple('TeamData', 'num name level school city dept match1 match2 match3 jury check')
 
     ROBOTICS_ROUND_TYPES = (Round1Score, Round2Score, Round3Score)
 
@@ -111,21 +115,26 @@ class PJCWebApp(tornado.web.Application):
 
         :return: a Tournament instance
         """
-        teams_cfg = os.path.join(self._data_home, self.TEAMS_CFG)
+        teams_cfg = os.path.join(self._data_home, self.TEAMS_DATA_FILE)
         if os.path.exists(teams_cfg):
             self.log.info('loading teams configuration from %s' % teams_cfg)
             with file(teams_cfg, 'rt') as fp:
-                teams_cfg = json.load(fp)
-                for num, team_details in teams_cfg.itemitems():
-                    name, level = team_details
-                    tournament.add_team(Team(int(num), name, level))
+                rdr = csv.reader(fp)
+                for team_data in (self.TeamData(*f) for f in rdr):
+                    level = ScholarLevel.encode(team_data.level)
+                    tournament.add_team(
+                        Team(team_data.num, team_data.name, level,
+                             Team.Planning((team_data.match1, team_data.match2, team_data.match3, team_data.jury))
+                             )
+                    )
             self.log.info('... done')
+            self.save_tournament()
         else:
             self.log.warn('no team configuration found in %s' % self._data_home)
 
     @property
     def _tournament_file_path(self):
-        return os.path.join(self._data_home, self.TOURNAMENT_DAT)
+        return os.path.join(self._data_home, self.TOURNAMENT_DATA_FILE)
 
     def _load_tournament(self, tournament, silent=False):
         self.log.info('loading tournament from %s', self._tournament_file_path)
@@ -143,7 +152,7 @@ class PJCWebApp(tornado.web.Application):
         """ Deletes the saved tournament and restarts with a new one
         """
         try:
-            os.remove(self.TOURNAMENT_DAT)
+            os.remove(self.TOURNAMENT_DATA_FILE)
         except OSError:
             pass
         self._initialize_tournament(self._tournament)
@@ -180,6 +189,8 @@ class PJCWebApp(tornado.web.Application):
     def required_pages(self, display):
         if display == 'ranking':
             return ((len(self.tournament.get_competing_teams()) - 1) / self.TV_PAGE_SIZE) + 1
+        elif display == 'next_schedules':
+            return 1
         else:
             return ((self.tournament.team_count(present_only=True) - 1) / self.TV_PAGE_SIZE) + 1
 

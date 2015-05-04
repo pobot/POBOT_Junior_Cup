@@ -57,6 +57,19 @@ label.text-left {
     text-align: left !important;
 }
 
+label.text-right {
+    text-align: right !important;
+}
+
+label.text-center {
+    text-align: center !important;
+}
+
+label.control-label.col-header {
+    text-align: center !important;
+    width: 100%;
+}
+
 table.final-ranking td, th {
     vertical-align: top;
 }
@@ -74,4 +87,22 @@ table.final-ranking tr.winner td {
     background-repeat: no-repeat;
     background-position: right center;
     background-size: auto 80%;
+}
+
+td.schedule-what {
+    text-align: right !important;
+}
+
+td.schedule-when {
+    text-align: left !important;
+}
+
+legend {
+    border-color: grey;
+}
+
+.score-editor-scroller {
+    height: 470px;
+    overflow-x: hidden;
+    overflow-y: scroll;
 }
