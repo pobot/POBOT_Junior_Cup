@@ -265,6 +265,19 @@ class ScholarLevel(object):
         'CM1'
     ]
 
+    encoding = [
+        ('fac', 'iut', 'ing', '>BAC'),
+        ('terminale', 'tale', 'tle', 't'),
+        ('première', '1ère', '1ere', '1e'),
+        ('seconde', '2nde'),
+        ('troisième', '3ème', '3eme', '3e'),
+        ('quatrième', '4ème', '4eme', '4e'),
+        ('cinquième', '5ème', '5eme', '5e'),
+        ('sixième', '6ème', '6eme', '6e'),
+        ('cm2',),
+        ('cm1',)
+    ]
+
     @classmethod
     def bonus_points(cls, level):
         return level - cls.POST_BAC
@@ -273,9 +286,34 @@ class ScholarLevel(object):
     def is_valid(cls, level):
         return cls.POST_BAC <= level <= cls.CM1
 
+    @classmethod
+    def encode(cls, level):
+        lvl = level.lower()
+        for code, accepted_forms in [t for t in enumerate(cls.encoding)][::-1]:
+            for option in accepted_forms:
+                if option in lvl:
+                    return code
+        raise KeyError('unrecognized level (%s)' % level)
 
-class Team(namedtuple('Team', 'num name level')):
-    present = False
+
+class Team(namedtuple('Team', 'num name level present, planning')):
+    __slots__ = ()
+
+    class Planning(namedtuple('Planning', 'match1 match2 match3 jury')):
+        __slots__ = ()
+
+        def __new__(cls, times):
+            args = []
+            for time in times:
+                if isinstance(time, basestring):
+                    args.append(datetime.datetime.strptime(time, "%H:%M").time())
+                elif isinstance(time, datetime.datetime):
+                    args.append(time.time())
+                elif isinstance(time, datetime.time):
+                    args.append(time)
+                else:
+                    raise ValueError('invalid planning time (%s)' % time)
+            return super(Team.Planning, cls).__new__(cls, *args)
 
     def as_dict(self):
         return {
@@ -283,7 +321,8 @@ class Team(namedtuple('Team', 'num name level')):
             'name': self.name,
             'level': ScholarLevel.labels[self.level],
             'bonus': ScholarLevel.bonus_points(self.level),
-            'present': self.present
+            'present': self.present,
+            'planning': self.planning
         }
 
     @property
@@ -344,9 +383,9 @@ class Tournament(object):
     def load_teams(self, dct):
         teams = {}
         for num, details in dct.iteritems():
-            name, level, present = details
-            team = Team(int(num), name, level)
-            team.present = present
+            name, level, present, planning = details
+            planning = Team.Planning(planning)
+            team = Team(int(num), name, level, present, planning)
             self.add_team(team)
 
     def team_count(self, present_only=True):
@@ -368,7 +407,7 @@ class Tournament(object):
             return sorted(self._teams.itervalues(), key=lambda t : t.num)
 
     def team_nums(self, present_only=False):
-        return sorted([ team.num for team in self.teams(present_only=present_only)])
+        return sorted([team.num for team in self.teams(present_only=present_only)])
 
     def get_team(self, team_num):
         return self._teams[team_num]
@@ -604,7 +643,7 @@ class Tournament(object):
     def as_dict(self):
         d = dict()
 
-        d['teams'] = self._teams
+        d['teams'] = dict([(team.num, [team.name, team.level, team.present, team.planning]) for team in self._teams.values()])
         d['planning'] = [str(t) for t in self._planning]
         d['robotics_rounds'] = [r.as_dict() for r in self._robotics_rounds]
         d['research_evaluations'] = self._research_evaluations.as_dict()
