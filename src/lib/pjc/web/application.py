@@ -7,6 +7,7 @@ import threading
 import tornado.ioloop
 import tornado.web
 import csv
+import datetime
 from collections import namedtuple
 
 from pjc.current_edition import Round1Score, Round2Score, Round3Score
@@ -118,15 +119,26 @@ class PJCWebApp(tornado.web.Application):
         teams_cfg = os.path.join(self._data_home, self.TEAMS_DATA_FILE)
         if os.path.exists(teams_cfg):
             self.log.info('loading teams configuration from %s' % teams_cfg)
+            item_start_times = [datetime.time() for _ in range(4)]
             with file(teams_cfg, 'rt') as fp:
                 rdr = csv.reader(fp)
                 for team_data in (self.TeamData(*f) for f in rdr):
+                    planning = Team.Planning((team_data.match1, team_data.match2, team_data.match3, team_data.jury))
+                    # keep latest item start times for global planning computation
+                    for i, time in enumerate(planning):
+                        if time > item_start_times[i]:
+                            item_start_times[i] = time
+
                     level = ScholarLevel.encode(team_data.level)
-                    tournament.add_team(
-                        Team(team_data.num, team_data.name, level,
-                             Team.Planning((team_data.match1, team_data.match2, team_data.match3, team_data.jury))
-                             )
-                    )
+                    tournament.add_team(Team(team_data.num, team_data.name, level, False, planning))
+            # advance latest start times by the duration of the corresponding items
+            # so that we'll get the time at which all teams should have completed theirs
+            today = datetime.date.today()   # dummy date part used for using timedeltas with time instances
+            tournament.planning = [
+                (datetime.datetime.combine(today, t) + datetime.timedelta(minutes=m)).time()
+                for t, m in zip(item_start_times, (15, 15, 15, 30))
+            ]
+
             self.log.info('... done')
             self.save_tournament()
         else:

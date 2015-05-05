@@ -296,7 +296,7 @@ class ScholarLevel(object):
         raise KeyError('unrecognized level (%s)' % level)
 
 
-class Team(namedtuple('Team', 'num name level present, planning')):
+class Team(namedtuple('Team', 'num name level present planning')):
     __slots__ = ()
 
     class Planning(namedtuple('Planning', 'match1 match2 match3 jury')):
@@ -314,6 +314,9 @@ class Team(namedtuple('Team', 'num name level present, planning')):
                 else:
                     raise ValueError('invalid planning time (%s)' % time)
             return super(Team.Planning, cls).__new__(cls, *args)
+
+        def as_tuple(self):
+            return [self[i] for i in range(4)]
 
     def as_dict(self):
         return {
@@ -643,12 +646,16 @@ class Tournament(object):
     def as_dict(self):
         d = dict()
 
-        d['teams'] = dict([(team.num, [team.name, team.level, team.present, team.planning]) for team in self._teams.values()])
-        d['planning'] = [str(t) for t in self._planning]
+        d['teams'] = dict([
+            (team.num, [team.name, team.level, team.present, [
+                t.strftime('%H:%M') for t in team.planning
+            ]])
+            for team in self._teams.values()
+        ])
+        d['planning'] = [t.strftime('%H:%M') for t in self._planning]
         d['robotics_rounds'] = [r.as_dict() for r in self._robotics_rounds]
         d['research_evaluations'] = self._research_evaluations.as_dict()
         d['jury_evaluations'] = self._jury_evaluations.as_dict()
-
         return d
 
     def from_dict(self, d):
