@@ -1,11 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from datetime import datetime
 
 __author__ = 'eric'
 
 from operator import itemgetter
 from collections import namedtuple
 import datetime
+import csv
 
 MATCH_DURATION = 150    # secs
 
@@ -51,7 +53,7 @@ class Score(object):
         """
         raise NotImplementedError()
 
-    def as_dict(self):
+    def serialize(self):
         return dict([(item, getattr(self, item)) for item in self.items])
 
     def as_tuple(self):
@@ -205,8 +207,8 @@ class Round(object):
         """
         return self._scores[team_number]
 
-    def as_dict(self):
-        return dict([(team_num, score.as_dict()) for team_num, score in self._scores.iteritems()])
+    def serialize(self):
+        return dict([(team_num, score.serialize()) for team_num, score in self._scores.iteritems()])
 
 
 def get_ranking_points(score_points, team_count):
@@ -240,27 +242,28 @@ def get_ranking_points(score_points, team_count):
 
 
 class ScholarLevel(object):
-    (POST_BAC,
-     TERMINALE,
-     PREMIERE,
-     SECONDE,
-     TROISIEME,
-     QUATRIEME,
-     CINQUIEME,
-     SIXIEME,
-     CM2,
-     CM1
+    (
+        POST_BAC,
+        TERMINALE,
+        PREMIERE,
+        SECONDE,
+        TROISIEME,
+        QUATRIEME,
+        CINQUIEME,
+        SIXIEME,
+        CM2,
+        CM1
     ) = range(10)
 
     labels = [
         'post-BAC',
         'Terminale',
-        '1ere',
+        '1ère',
         '2nde',
-        '3eme',
-        '4eme',
-        '5eme',
-        '6eme',
+        '3ème',
+        '4ème',
+        '5ème',
+        '6ème',
         'CM2',
         'CM1'
     ]
@@ -280,7 +283,7 @@ class ScholarLevel(object):
 
     @classmethod
     def bonus_points(cls, level):
-        return level - cls.POST_BAC
+        return level.code - cls.POST_BAC
 
     @classmethod
     def is_valid(cls, level):
@@ -295,45 +298,140 @@ class ScholarLevel(object):
                     return code
         raise KeyError('unrecognized level (%s)' % level)
 
+    @classmethod
+    def decode(cls, code):
+        return cls.labels[code]
 
-class Team(namedtuple('Team', 'num name level present planning')):
-    __slots__ = ()
+    def __init__(self, value):
+        if isinstance(value, dict):
+            self.__dict__.update(value)
 
-    class Planning(namedtuple('Planning', 'match1 match2 match3 jury')):
-        __slots__ = ()
+        else:
+            try:
+                self.code = int(value)
+                self.orig = None
+            except TypeError:
+                self.code = self.encode(value)
+                self.orig = value
+            self.label = self.labels[self.code]
 
-        def __new__(cls, times):
-            args = []
-            for time in times:
-                if isinstance(time, basestring):
-                    args.append(datetime.datetime.strptime(time, "%H:%M").time())
-                elif isinstance(time, datetime.datetime):
-                    args.append(time.time())
-                elif isinstance(time, datetime.time):
-                    args.append(time)
-                else:
-                    raise ValueError('invalid planning time (%s)' % time)
-            return super(Team.Planning, cls).__new__(cls, *args)
-
-        def as_tuple(self):
-            return [self[i] for i in range(4)]
-
-    def as_dict(self):
+    def serialize(self):
         return {
-            'num': self.num,
-            'name': self.name,
-            'level': ScholarLevel.labels[self.level],
-            'bonus': ScholarLevel.bonus_points(self.level),
-            'present': self.present,
-            'planning': self.planning
+            'code': self.code,
+            'label': self.label,
+            'orig': self.orig,
         }
+
+
+class TeamPlanning(object):
+    class Match(object):
+        SLOT_DURATION = datetime.timedelta(minutes=10)
+
+        def __init__(self, time, table=None):
+            self.time = time
+            self.table = table
+
+    class Presentation(object):
+        SLOT_DURATION = datetime.timedelta(minutes=30)
+
+        def __init__(self, time, jury=None):
+            self.time = time
+            self.jury = jury
+
+    def __init__(self, times):
+        if len(times) != 4:
+            raise ValueError('parameter must be a 4 items tuples')
+
+        match_count = 3
+        self.matches = [None] * match_count
+        for i, entry in enumerate(times):
+            if isinstance(entry, (tuple, list)):
+                time, assignment = entry
+            else:
+                time, assignment = entry, None
+
+            if isinstance(time, basestring):
+                time = datetime.datetime.strptime(time, "%H:%M").time()
+            elif isinstance(time, datetime.datetime):
+                time = time.time()
+            elif not isinstance(time, datetime.time):
+                raise ValueError('invalid planning time (%s)' % time)
+            if i < match_count:
+                self.matches[i] = self.Match(time, assignment)
+            else:
+                self.presentation = self.Presentation(time, assignment)
+
+    def serialize(self):
+        return [(m.time.strftime('%H:%M'), m.table) for m in self.matches] + \
+               [(self.presentation.time.strftime('%H:%M'), self.presentation.jury)]
+
+    @property
+    def times(self):
+        return tuple(m.time for m in self.matches) + (self.presentation.time,)
+
+    @property
+    def extent(self):
+        today = datetime.date.today()
+        planning_start = datetime.time.max
+        planning_end = datetime.time.min
+
+        for time in (m.time for m in self.matches):
+            if time < planning_start:
+                planning_start = time
+            if time >= planning_end:
+                end = (datetime.datetime.combine(today, time) + self.Match.SLOT_DURATION).time()
+                if end > planning_end:
+                    planning_end = end
+
+        time = self.presentation.time
+        if time < planning_start:
+            planning_start = time
+        if time >= planning_end:
+            end = (datetime.datetime.combine(today, time) + self.Presentation.SLOT_DURATION).time()
+            if end > planning_end:
+                planning_end = end
+
+        return planning_start, planning_end
+
+
+class Team(object):
+
+    def __init__(self, num, name, school, level, city, department, present, planning):
+        self.num = int(num)
+        self.name = name
+        self.school = school
+        self.level = level if isinstance(level, ScholarLevel) else ScholarLevel(level)
+        self.city = city
+        self.department = department
+        self.present = present
+        self.planning = planning
 
     @property
     def bonus(self):
         return ScholarLevel.bonus_points(self.level)
 
+    def serialize(self):
+        return {
+            'name': self.name,
+            'school': self.school,
+            'level': self.level.serialize(),
+            'city': self.city,
+            'department': self.department,
+            'present': self.present,
+            'planning': self.planning.serialize()
+        }
+
+    def as_dict(self):
+        return self.serialize().update({
+            'num': self.num,
+            'bonus': ScholarLevel.bonus_points(self.level),
+        })
+
     def __repr__(self):
         return "%d - %s" % (self.num, self.name)
+
+
+TeamCSVData = namedtuple('TeamCSVData', 'num name level school city dept match1 match2 match3 jury check')
 
 
 class DuplicatedTeam(Exception):
@@ -345,10 +443,12 @@ class Tournament(object):
     """ The global tournament
     """
 
-    def __init__(self, robotics_score_types):
+    def __init__(self, robotics_score_types=None):
         self._robotics_score_types = robotics_score_types
         self._teams = {}
-        self._robotics_rounds = [Round(score_type) for score_type in robotics_score_types]
+        self._robotics_rounds = \
+            [Round(score_type) for score_type in robotics_score_types] if robotics_score_types \
+            else []
         self._research_evaluations = Round(ResearchEvaluationScore)
         self._jury_evaluations = Round(JuryEvaluationScore)
         self._planning = [
@@ -365,6 +465,51 @@ class Tournament(object):
     @planning.setter
     def planning(self, planning):
         self._planning = planning
+
+    def initialize_with_teams_data(self, team_fp):
+        item_start_times = [datetime.time() for _ in range(4)]
+        rdr = csv.reader(team_fp)
+        for team_data in (TeamCSVData(*f) for f in rdr):
+            planning = TeamPlanning((team_data.match1, team_data.match2, team_data.match3, team_data.jury))
+            # keep latest item start times for global planning computation
+            for i, time in enumerate(planning.times):
+                if time > item_start_times[i]:
+                    item_start_times[i] = time
+
+            # level = ScholarLevel.encode(team_data.level)
+            level = ScholarLevel(team_data.level)
+            self.add_team(Team(
+                team_data.num,
+                name=team_data.name,
+                school=team_data.school,
+                level=level,
+                city=team_data.city,
+                department=team_data.dept,
+                present=False,
+                planning=planning
+            ))
+
+        # advance latest start times by the duration of the corresponding items
+        # so that we'll get the time at which all teams should have completed theirs
+        today = datetime.date.today()   # dummy date part used for using timedeltas with time instances
+        self.planning = [
+            (datetime.datetime.combine(today, t) + datetime.timedelta(minutes=m)).time()
+            for t, m in zip(item_start_times, (15, 15, 15, 30))
+        ]
+
+        # finalize the planning by assigning tables and jury numbers
+        all_teams = self.registered_teams
+        start_table = 0
+        for match in range(3):
+            num = start_table
+            for team in all_teams:
+                team.planning.matches[match].table = num + 1    # human friendly numbers start at 1
+                num = (num + 1) % 3
+            start_table = (start_table + 1) % 3
+        num = 0
+        for team in all_teams:
+            team.planning.presentation.jury = num + 1
+            num = (num + 1) % 3
 
     def add_team(self, team):
         """ Adds a team to participants.
@@ -383,12 +528,20 @@ class Tournament(object):
         self._teams[team.num] = team
         return self.team_count(present_only=False)
 
-    def load_teams(self, dct):
-        teams = {}
+    def deserialize_teams(self, dct):
+        self._teams.clear()
         for num, details in dct.iteritems():
-            name, level, present, planning = details
-            planning = Team.Planning(planning)
-            team = Team(int(num), name, level, present, planning)
+            planning = TeamPlanning(details['planning'])
+            team = Team(
+                num,
+                name=details['name'],
+                school=details['school'],
+                level=details['level'],
+                city=details['city'],
+                department=details['department'],
+                present=details['present'],
+                planning=planning
+            )
             self.add_team(team)
 
     def team_count(self, present_only=True):
@@ -411,6 +564,10 @@ class Tournament(object):
 
     def team_nums(self, present_only=False):
         return sorted([team.num for team in self.teams(present_only=present_only)])
+
+    @property
+    def registered_teams(self):
+        return self.teams(present_only=False)
 
     def get_team(self, team_num):
         return self._teams[team_num]
@@ -643,25 +800,20 @@ class Tournament(object):
 
         return result
 
-    def as_dict(self):
+    def serialize(self):
         d = dict()
 
-        d['teams'] = dict([
-            (team.num, [team.name, team.level, team.present, [
-                t.strftime('%H:%M') for t in team.planning
-            ]])
-            for team in self._teams.values()
-        ])
+        d['teams'] = dict([(team.num, team.serialize())for team in self._teams.values()])
         d['planning'] = [t.strftime('%H:%M') for t in self._planning]
-        d['robotics_rounds'] = [r.as_dict() for r in self._robotics_rounds]
-        d['research_evaluations'] = self._research_evaluations.as_dict()
-        d['jury_evaluations'] = self._jury_evaluations.as_dict()
+        d['robotics_rounds'] = [r.serialize() for r in self._robotics_rounds]
+        d['research_evaluations'] = self._research_evaluations.serialize()
+        d['jury_evaluations'] = self._jury_evaluations.serialize()
         return d
 
-    def from_dict(self, d):
-        self.load_teams(d['teams'])
+    def deserialize(self, d):
+        self.deserialize_teams(d['teams'])
 
-        self.planning = [datetime.datetime.strptime(s, "%H:%M:%S").time() for s in d['planning']]
+        self.planning = [datetime.datetime.strptime(s, "%H:%M").time() for s in d['planning']]
 
         self._robotics_rounds = []
         rounds_dict = d['robotics_rounds']
@@ -680,5 +832,22 @@ class Tournament(object):
         for team_num, score_dict in d['jury_evaluations'].iteritems():
             score = JuryEvaluationScore(**score_dict)
             self._jury_evaluations.add_team_score(int(team_num), score)
+
+    def get_planning_time_span(self):
+        """
+        :return: the bounds of the event time extent
+        :rtype: tuple of datetime.time
+        """
+        start_time = datetime.time.max
+        end_time = datetime.time.min
+
+        for team in self.registered_teams:
+            start, end = team.planning.extent
+            if start < start_time:
+                start_time = start
+            if end > end_time:
+                end_time = end
+
+        return start_time, end_time
 
 
