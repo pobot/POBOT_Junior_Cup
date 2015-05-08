@@ -31,6 +31,8 @@ L'ensemble de ces fonctions est proposé via une interface Web, y compris les af
 Pour plus d'information sur la POBOT Junior Cup, faites un tour sur notre
 [site Web](http://www.pobot.org/-POBOT-Junior-Cup-.html).
 
+Son nom ``pjc-mc`` signifie : "PJC Master of Ceremony" :)
+
 Gestion de la compétition
 -------------------------
 
@@ -53,14 +55,15 @@ Les pages disponibles sont :
 * score
 * classement
 * avancement
+* annonce des prochains passages
 
 Une page de diffusion de message est également gérée automatiquement.
 
 La configuration de l'enchaînement des différents affichages, ainsi que du message à diffuser si nécessaire,
 est proposé dans des pages spécifiques de l'application.
 
-La configuration des "clients" (les Raspberry n'assurant que la fonction d'affichage sur TV), se reporter à la section
-"Configuration des clients".
+Pour la configuration des "clients" (les Raspberry n'assurant que la fonction d'affichage sur TV), se reporter 
+à la section "Configuration des clients".
 
 Installation
 ------------
@@ -72,7 +75,7 @@ code source peut toujours être exploité pour explorer l'utilisation de Tornado
 ### Dépendances
 
 * Python 2.7
-* Serveur Python Tornado (3.2)
+* Serveur Python Tornado (4.1)
 
 ### Installation automatique (système)
 
@@ -91,14 +94,14 @@ des dépendances ou qu'on préfère le faire manuellement), il suffit de préfix
 
 Quelques exemples d'utilisation :
 
-    sudo INSTALL_DEPS=1 dpkg -i pjc-compmgr_<version>_all.deb
+    sudo INSTALL_DEPS=1 dpkg -i pjc-mc_<version>_all.deb
 Installe l'application et ses dépendances, puis la démarre. A utiliser pour la toute première installation.
 
-    sudo dpkg -i pjc-compmgr_<version>_all.deb
+    sudo dpkg -i pjc-mc_<version>_all.deb
 Installe l'application sans les dépendances, et la démarre ensuite. A n'utiliser que pour une mise à jour, sauf si
 les dépendances sont déjà installées.
 
-    sudo NO_START=1 dpkg -i pjc-compmgr_<version>_all.deb
+    sudo NO_START=1 dpkg -i pjc-mc_<version>_all.deb
 La même chose sans démarrer l'application.
 
 
@@ -106,9 +109,9 @@ La même chose sans démarrer l'application.
 
 Décompresser le paquet Debian sans l'installer :
 
-    dpkg -x pjc-compmgr_<version>_all.deb pjc-compmgr
+    dpkg -x pjc-mc_<version>_all.deb pjc-mc
 
-L'arboresence système standard est alors créée dans la directory cible choisie (`pjc-compmgr` ici).
+L'arboresence système standard est alors créée dans la directory cible choisie (`pjc-mc` ici).
 
 ### Installation manuelle des dépendances
 
@@ -126,27 +129,39 @@ disponible.
 Il faut donc utiliser la commande `pip` pour cela :
 
     sudo pip install tornado
+    
+**ATTENTION:** La version actuelle de l'application nécessite une version supérieure ou égale à 4.0.    
 
 Si `pip` n'est pas déjà installé :
 
     sudo apt-get install pip
 
+### Installation semi-automatique des dépendances
+
+Pour simplifier l'installation des packages Python dont dépend l'application, un fichier ``requirements.txt``
+est fourni dans le dossier d'installation (``/opt/pjc-mc`` par défault). Ce fichier spécifie en outre les versions
+requises. 
+
+L'installation de l'ensemble des dépendances se fait alors via la commande :
+
+    sudo pip install -r /opt/pjc-mc/requirements.txt
+
 ### Exécution
 
 Si l'application a été installée au niveau système, elle peut être démarrée sous forme de service :
 
-    sudo service pjc-compmgr start
+    sudo service pjc-mc start
 
-Le répertoire utilisé pour les données (fichier `tournament.dat`) est dans ce cas `/var/lib/pjc-compmgr` par défaut,
+Le répertoire utilisé pour les données (fichier `tournament.dat`) est dans ce cas `/var/lib/pjc-mc` par défaut,
 ou le path spécifié via l'option `-d/--data-home` de la commande de lancement du script `webapp.py`.
 
 Si elle a été installée comme application utilisateur (cf paragraphe *Installation manuelle* ci-dessus) dans le
 répertoire `<app-dir>` le lancement s'effectue par :
 
-    cd <app-dir>/opt/pjc-compmgr
+    cd <app-dir>/opt/pjc-mc
     PYTHONPATH=./lib python bin/webapp.py
 
-Le répertoire de données est alors `$HOME/.pjc-compmgr/`.
+Le répertoire de données est alors `$HOME/.pjc-mc/`.
 
 ### Options de la ligne de commande
 
@@ -162,10 +177,10 @@ Elles sont indiquées par l'aide en ligne :
       -D, --debug           activates debug mode (default: False)
       -d DATA_HOME, --data-home DATA_HOME
                             data storage directory path (default: /home/pi/.pjc-
-                            compmgr)
+                            mc)
       --display-sequence DISPLAY_SEQUENCE
                             TV display sequence (as a JSON array of page names)
-                            (default: ["progress", "scores"])
+                            (default: ["progress", "scores", "next_schedules"])
 
 
 Configuration des clients pour affichage TV
@@ -178,7 +193,7 @@ Afin d'en rendre le démarrage automatique, les étapes suivantes sont à exécu
 * copier le fichier `<project-root>/client/start-tv-display-lxde` dans le home dir de l'utilisateur `pi` par exemple (en fait
 l'emplacement de ce fichier importe peu, l'avantage du home dir est de ne pas nécessiter d'être sudo pour y écrire).
 
-* remplacer le fichier `/etc/xdg/lxsession/LXED/autostart` par :
+* remplacer le fichier `/etc/xdg/lxsession/LXDE/autostart` par :
 
         @xset -dpms
         @xset s off
