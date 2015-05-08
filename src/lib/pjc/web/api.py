@@ -13,7 +13,7 @@ __author__ = 'eric'
 
 class WSHTeams(AppRequestHandler):
     def put(self):
-        self.tournament.load_teams(json.loads(self.request.body))
+        self.tournament.deserialize_teams(json.loads(self.request.body))
         self.application.save_tournament()
 
     def get(self):
@@ -32,7 +32,7 @@ class WSHTeamBaseHandler(AppRequestHandler):
 class WSHTeam(WSHTeamBaseHandler):
     def get(self, team_num):
         team = self.tournament.get_team(team_num)
-        self.write({"team": team.as_dict()})
+        self.write({"team": team.serialize()})
         self.finish()
 
 
@@ -43,7 +43,7 @@ class WSHRoboticsScore(WSHTeamBaseHandler):
         _round = self.tournament.get_robotics_round(round_num)
         try:
             score = _round.scores[team_num]
-            self.write({"score": score.as_dict()})
+            self.write({"score": score.serialize()})
             self.finish()
         except KeyError:
             self.set_status(httplib.NOT_FOUND, 'Round not found (%d) for team (%d)' % (round_num, team_num))
@@ -61,7 +61,7 @@ class WSHResearchScore(WSHTeamBaseHandler):
     def get(self, team_num):
         try:
             score = self.tournament.research_evaluations.scores[team_num]
-            self.write({"score": score.as_dict()})
+            self.write({"score": score.serialize()})
             self.finish()
         except KeyError:
             self.set_status(httplib.NOT_FOUND, 'Score not found for team (%d)' % team_num)
@@ -77,7 +77,7 @@ class WSHJuryScore(WSHTeamBaseHandler):
     def get(self, team_num):
         try:
             score = self.tournament.jury_evaluations.scores[team_num]
-            self.write({"score": score.as_dict()})
+            self.write({"score": score.serialize()})
             self.finish()
         except KeyError:
             self.set_status(httplib.NOT_FOUND, 'Score not found for team (%d)' % team_num)
