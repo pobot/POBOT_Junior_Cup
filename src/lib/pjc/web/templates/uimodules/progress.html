@@ -12,9 +12,18 @@
     span.on_schedule {
         color: lime;
     }
+    span.glyphicon {
+        font-weight: normal;
+    }
+    table.progression tbody span.glyphicon {
+        font-size: larger;
+    }
+    table.progression thead span.glyphicon {
+        font-size: smaller;
+    }
 </style>
 
-<table class="table table-striped table-bordered table-condensed status translucent">
+<table class="table table-striped table-bordered table-condensed status translucent progression ">
     <thead>
     <tr>
         <th rowspan="2">&nbsp;</th>
@@ -24,21 +33,28 @@
         <th>Exposé</th>
     </tr>
     <tr class="planning">
-        <th>&rarr;&nbsp;<span id="planning_rob1" class="limit">{{ planning.rob1 }}</span></th>
-        <th>&rarr;&nbsp;<span id="planning_rob2" class="limit">{{ planning.rob2 }}</span></th>
-        <th>&rarr;&nbsp;<span id="planning_rob3" class="limit">{{ planning.rob3 }}</span></th>
-        <th>&rarr;&nbsp;<span id="planning_research" class="limit">{{ planning.research }}</span></th>
+        <th><span class="glyphicon glyphicon-time"></span><span id="planning_rob1" class="limit"> {{ planning.rob1 }}</span></th>
+        <th><span class="glyphicon glyphicon-time"></span><span id="planning_rob2" class="limit"> {{ planning.rob2 }}</span></th>
+        <th><span class="glyphicon glyphicon-time"></span><span id="planning_rob3" class="limit"> {{ planning.rob3 }}</span></th>
+        <th><span class="glyphicon glyphicon-time"></span><span id="planning_research" class="limit"> {{ planning.research }}</span></th>
     </tr>
     </thead>
     <tbody>
-    {% for item in progress %}
-    <tr>
-        <th class="team-name">{{ item.team_num }} - {{ item.team_name }}</th>
-        <td><img src="/img/status-{{ item.rob1 }}.png"></td>
-        <td><img src="/img/status-{{ item.rob2 }}.png"></td>
-        <td><img src="/img/status-{{ item.rob3 }}.png"></td>
-        <td><img src="/img/status-{{ item.research }}.png"></td>
-    </tr>
+    {%if progress %}
+        {% set glyphs = ['glyphicon-ok text-success', '', 'glyphicon-time text-danger'] %}
+        {% for item in progress %}
+        <tr>
+            <th class="team-name">{{ item.team_num }} - {{ item.team_name }}</th>
+            <td><span class="glyphicon {{ glyphs[item.rob1] }}"></span></td>
+            <td><span class="glyphicon {{ glyphs[item.rob2] }}"></span></td>
+            <td><span class="glyphicon {{ glyphs[item.rob3] }}"></span></td>
+            <td><span class="glyphicon {{ glyphs[item.research] }}"></span></td>
+        </tr>
+        {% end %}
+    {% else %}
+        <tr>
+            <td colspan="6" class="text-warning">Aucune équipe présente.</td>
+        </tr>
     {% end %}
     </tbody>
 </table>
