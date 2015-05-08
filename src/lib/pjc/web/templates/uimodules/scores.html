@@ -10,16 +10,22 @@
     <tr><th>Epr.1</th><th>Epr.2</th><th>Epr.3</th></tr>
     </thead>
     <tbody>
-    {% for item in scores_data %}
-    <tr>
-        <th class="team-name">{{ item.team.num }} - {{ item.team.name }}</th>
-        <td>{{ item.score.rob1 }}</td>
-        <td>{{ item.score.rob2 }}</td>
-        <td>{{ item.score.rob3 }}</td>
-        <td>{{ item.score.research }}</td>
-        <!--<td>{{ item.score.jury }}</td>-->
-        <td>{{ item.team.bonus }}</td>
-    </tr>
+    {% if scores_data %}
+        {% for item in scores_data %}
+        <tr>
+            <th class="team-name">{{ item.team.num }} - {{ item.team.name }}</th>
+            <td>{{ item.score.rob1 }}</td>
+            <td>{{ item.score.rob2 }}</td>
+            <td>{{ item.score.rob3 }}</td>
+            <td>{{ item.score.research }}</td>
+            <!--<td>{{ item.score.jury }}</td>-->
+            <td>{{ item.team.bonus }}</td>
+        </tr>
+        {% end %}
+    {% else %}
+        <tr>
+            <td colspan="6" class="text-warning">Aucune équipe présente.</td>
+        </tr>
     {% end %}
     </tbody>
 </table>
