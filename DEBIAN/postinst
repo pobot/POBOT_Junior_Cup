@@ -1,10 +1,10 @@
 #!/bin/bash
 
-if [ "$INSTALL_DEPS" == "1" ] ; then
-    pip install tornado
-fi
+SVC_NAME="pjc-mc"
 
-SVC_NAME="pjc-compmgr"
+if [ "$INSTALL_DEPS" == "1" ] ; then
+    pip install -r /opt/$SVC_NAME/requirements.txt
+fi
 
 update-rc.d $SVC_NAME defaults
 

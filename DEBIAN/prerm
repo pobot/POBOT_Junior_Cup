@@ -1,5 +1,7 @@
 #!/bin/bash
 
-service pjc-compmgr stop
-# avoid uninstall failure if service already stopped
+service pjc-mc stop
+
+find /opt/pjc-mc/ -name "*.pyc" -delete
+
 exit 0
