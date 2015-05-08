@@ -6,12 +6,9 @@ import os
 import threading
 import tornado.ioloop
 import tornado.web
-import csv
-import datetime
-from collections import namedtuple
 
 from pjc.current_edition import Round1Score, Round2Score, Round3Score
-from pjc.tournament import Tournament, Team, ScholarLevel
+from pjc.tournament import Tournament
 from pjc.web import admin, api, tv, uimodules
 
 __author__ = 'Eric Pascual'
@@ -23,7 +20,6 @@ class PJCWebApp(tornado.web.Application):
     TOURNAMENT_DATA_FILE = 'tournament.dat'
 
     TEAMS_DATA_FILE = 'teams.csv'
-    TeamData = namedtuple('TeamData', 'num name level school city dept match1 match2 match3 jury check')
 
     ROBOTICS_ROUND_TYPES = (Round1Score, Round2Score, Round3Score)
 
@@ -61,6 +57,7 @@ class PJCWebApp(tornado.web.Application):
             (r"/css/(.*)", tornado.web.StaticFileHandler, {"path": os.path.join(self._res_home, 'css')}),
             (r"/js/(.*)", tornado.web.StaticFileHandler, {"path": os.path.join(self._res_home, 'js')}),
             (r"/img/(.*)", tornado.web.StaticFileHandler, {"path": os.path.join(self._res_home, 'img')}),
+            (r"/fonts/(.*)", tornado.web.StaticFileHandler, {"path": os.path.join(self._res_home, 'fonts')}),
             (r"/docs/(.*)", tornado.web.StaticFileHandler, {"path": os.path.join(self._res_home, 'docs')})
         ]
 
@@ -111,34 +108,14 @@ class PJCWebApp(tornado.web.Application):
         super(PJCWebApp, self).__init__(self._handlers, **settings)
 
     def _initialize_tournament(self, tournament):
-        """ Initializes a new tournament instance, loading the teams definition if the related configuration
+        """ Initializes a tournament instance, loading the teams definition if the related configuration
         file exists
-
-        :return: a Tournament instance
         """
         teams_cfg = os.path.join(self._data_home, self.TEAMS_DATA_FILE)
         if os.path.exists(teams_cfg):
             self.log.info('loading teams configuration from %s' % teams_cfg)
-            item_start_times = [datetime.time() for _ in range(4)]
             with file(teams_cfg, 'rt') as fp:
-                rdr = csv.reader(fp)
-                for team_data in (self.TeamData(*f) for f in rdr):
-                    planning = Team.Planning((team_data.match1, team_data.match2, team_data.match3, team_data.jury))
-                    # keep latest item start times for global planning computation
-                    for i, time in enumerate(planning):
-                        if time > item_start_times[i]:
-                            item_start_times[i] = time
-
-                    level = ScholarLevel.encode(team_data.level)
-                    tournament.add_team(Team(team_data.num, team_data.name, level, False, planning))
-            # advance latest start times by the duration of the corresponding items
-            # so that we'll get the time at which all teams should have completed theirs
-            today = datetime.date.today()   # dummy date part used for using timedeltas with time instances
-            tournament.planning = [
-                (datetime.datetime.combine(today, t) + datetime.timedelta(minutes=m)).time()
-                for t, m in zip(item_start_times, (15, 15, 15, 30))
-            ]
-
+                tournament.initialize_with_teams_data(fp)
             self.log.info('... done')
             self.save_tournament()
         else:
@@ -151,13 +128,13 @@ class PJCWebApp(tornado.web.Application):
     def _load_tournament(self, tournament, silent=False):
         self.log.info('loading tournament from %s', self._tournament_file_path)
         with file(self._tournament_file_path, 'rb') as fp:
-            tournament.from_dict(json.load(fp))
+            tournament.deserialize(json.load(fp))
 
     def save_tournament(self):
         """ Saves the tournament to disk.
         """
         with file(self._tournament_file_path, 'wb') as fp:
-            json.dump(self._tournament.as_dict(), fp, indent=4)
+            json.dump(self._tournament.serialize(), fp, indent=4)
             self.log.info('tournament saved to %s' % self._tournament_file_path)
 
     def reset_tournament(self):
