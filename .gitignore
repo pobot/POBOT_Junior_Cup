@@ -1,6 +1,5 @@
 *.pyc
 .idea
-assets
 build
 *.debdata/
 doc/
@@ -12,6 +11,7 @@ data-arch-2014
 screenshots
 sdcard/
 
-docgen/jury_sheets.pdf
-docgen/approval_sheets.pdf
-docgen/match_sheets.pdf
+tools/jury_sheets.pdf
+tools/approval_sheets.pdf
+tools/match_sheets.pdf
+tools/make-forms/output
