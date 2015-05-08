@@ -282,13 +282,11 @@ class AdminRoboticsRoundScoreEditor(ScoreEditorHandler):
         for team_num in self.tournament.team_nums(present_only=True):
             total_time = MMSS_to_seconds(self.get_argument('total_time_%d' % team_num))
             if total_time:
-                score = round_.score_type(
-                    total_time=total_time,
-                    **dict((
+                kwargs = dict((
                         (arg, int(self.get_argument('%s_%d' % (arg, team_num))))
                         for arg in self.score_fields
-                    ))
-                )
+                ))
+                score = round_.score_type(total_time=total_time, **kwargs)
                 self.tournament.set_robotics_score(team_num, self.round_num, score)
             else:
                 self.tournament.clear_robotics_score(team_num, self.round_num)
