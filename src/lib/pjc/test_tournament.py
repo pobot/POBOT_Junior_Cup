@@ -181,12 +181,12 @@ class TestTournament(TestCase):
 
     def test_json_persistence(self):
         with file('/tmp/tournament.json', 'wt') as fp:
-            json.dump(self._tournament.as_dict(), fp, indent=4)
+            json.dump(self._tournament.serialize(), fp, indent=4)
 
         with file('/tmp/tournament.json', 'rt') as fp:
             d = json.load(fp)
         t = Tournament(self._tournament._robotics_score_types)
-        t.from_dict(d)
+        t.deserialize(d)
 
         self.assertEqual(t.planning, self._tournament.planning)
         self.assertEqual(t.teams, self._tournament.teams)
@@ -195,13 +195,13 @@ class TestTournament(TestCase):
         s2 = self._tournament.research_evaluations.scores
         self.assertEqual(len(s1), len(s1))
         for team_num, score in s2.iteritems():
-            self.assertDictEqual(score.as_dict(), s2[team_num].as_dict())
+            self.assertDictEqual(score.serialize(), s2[team_num].serialize())
 
         s1 = t.jury_evaluations.scores
         s2 = self._tournament.jury_evaluations.scores
         self.assertEqual(len(s1), len(s1))
         for team_num, score in s2.iteritems():
-            self.assertDictEqual(score.as_dict(), s2[team_num].as_dict())
+            self.assertDictEqual(score.serialize(), s2[team_num].serialize())
 
         self.assertEqual(len(t.get_robotics_rounds()), len(self._tournament.get_robotics_rounds()))
         for round1, round2 in zip(t.get_robotics_rounds(), self._tournament.get_robotics_rounds()):
@@ -209,4 +209,4 @@ class TestTournament(TestCase):
             s2 = round2.scores
             self.assertEqual(len(s1), len(s1))
             for team_num, score in s2.iteritems():
-                self.assertDictEqual(score.as_dict(), s2[team_num].as_dict())
+                self.assertDictEqual(score.serialize(), s2[team_num].serialize())
