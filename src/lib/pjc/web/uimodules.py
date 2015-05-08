@@ -153,7 +153,7 @@ class NextSchedules(UIModuleBase):
         next_appts = sorted([
             (time, team, team.planning.index(time))
             for team in application.tournament.teams(present_only=True)
-            for time in team.planning if time >= now
+            for time in team.planning.times if time >= now
         ])
 
         def emergency(t):
