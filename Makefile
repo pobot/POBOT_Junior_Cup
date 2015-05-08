@@ -47,6 +47,8 @@ update_build_tree:
 		--include "*.jpeg" \
 		--include "*.gif" \
 		--include "*.svg" \
+		--include "*.woff" \
+		--include "*.ttf" \
 		--include "*.pdf" \
 		--exclude "*" \
 		src/lib/ $(BUILD_OPT)/lib
@@ -56,6 +58,9 @@ update_build_tree:
 
 	# teams list
 	cp -a src/var/* $(BUILD_VAR_LIB)
+
+	# requirements
+	cp -a requirements-server.txt $(BUILD_OPT)/requirements.txt
 
 deploy: dist
 	scp $(DEBPKG_NAME).deb pi@pjc-display-1:
