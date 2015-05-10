@@ -105,6 +105,7 @@ class ProgressTable(UIModuleBase):
 
         now = datetime.datetime.now()
         today = now.date()
+        current_time = now.time()
         planning_limits = [
             datetime.datetime.combine(today, t)
             for t in times
@@ -121,14 +122,15 @@ class ProgressTable(UIModuleBase):
         # the tree-state status of the robotics rounds and the research presentation.
         progress = []
         for team in tournament.teams(present_only=True):
+            planning_times = team.planning.times
             robotics = [
                 self.DONE if s
-                else self.LATE if now > limit
+                else self.LATE if current_time > limit
                 else self.NOT_DONE
-                for s, limit in zip(status_rob[team.num-1], robotics_limits)
+                for s, limit in zip(status_rob[team.num-1], planning_times[:3])    # robotics_limits)
             ]
             research = self.DONE if status_research[team.num-1] \
-                else self.LATE if now > research_limit \
+                else self.LATE if current_time > planning_times[-1] \
                 else self.NOT_DONE
             progress.append(self.Status(team.num, team.name, robotics[0], robotics[1], robotics[2], research))
 
@@ -151,7 +153,7 @@ class NextSchedules(UIModuleBase):
         # now = (datetime.datetime.now() - datetime.timedelta(hours=3, minutes=15)).time()
         now = datetime.datetime.now().time()
         next_appts = sorted([
-            (time, team, team.planning.index(time))
+            (time, team, team.planning.times.index(time))
             for team in application.tournament.teams(present_only=True)
             for time in team.planning.times if time >= now
         ])
