@@ -1,17 +1,4 @@
 <style>
-    span.limit {
-        /* if not, seems to apply 120% * 120% */
-        font-size: 100%;
-    }
-    span.late {
-        color: red;
-    }
-    span.close_to_limit {
-        color: orange;
-    }
-    span.on_schedule {
-        color: lime;
-    }
     span.glyphicon {
         font-weight: normal;
     }
@@ -68,14 +55,14 @@ $(document).ready(function() {
         var limit = to_minutes(elt.text().trim());
         if (limit - clock > 10) {
             // we have time for the moment
-            elt.addClass("on_schedule");
+            elt.addClass("text-success");
 
         } else if (limit - clock > 0) {
             // close to the limit
-            elt.addClass("close_to_limit");
+            elt.addClass("text-warning");
         } else {
             // we are late
-            elt.addClass("late");
+            elt.addClass("text-danger");
         }
     }
     var clock = to_minutes($("#clock").text().trim());
