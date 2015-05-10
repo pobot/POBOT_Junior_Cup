@@ -12,6 +12,10 @@
         text-align: center;
         font-weight: bold;
     }
+
+    span.team-name {
+        padding-left: 20px;
+    }
 </style>
 {% end %}
 
@@ -24,29 +28,21 @@
 {% module AdminPageTitle("Pointage des équipes") %}
 
 <div class="row">
-    <div class="col-md-2">&nbsp;</div>
-    <div class="col-md-8">
+    <div class="col-md-3">&nbsp;</div>
+    <div class="col-md-6">
         <form id="registration" role="form" class="form-horizontal">
             <fieldset>
                 <div class="form-group">
-                    <!--
-                    <ul class="pager" style="margin:0px">
-                        <li id="page-down" class="previous"><a href="#">&lt;&lt;</a></li>
-                        <li id="page-up" class="next"><a href="#">&gt;&gt;</a></li>
-                    </ul>
-                    <label
-                            class="col-md-3 col-md-offset-5 control-label text-center"
-                            style="position:absolute;top:0px;">Equipe arrivée ?</label>
-                    -->
                     <div class="row list-header">Equipe arrivée ?</div>
                 </div>
                 <div class="form-group arrivals-list">
                 {% for num, name, arrived in arrivals %}
                     <div id="team-row_{{ num }}" class="row team-row">
-                        <label class="control-label col-md-5">{{ num }} - {{ name }}</label>
-                        <div class="col-md-3">
-                            <span class="input-group-addon">
-                                <input type="checkbox" id="arrived_{{num}}" name="arrived_{{num}}" {{ "checked" if arrived else "" }} />
+                        <div class="col-md-12">
+                            <span class="input-group-addon" style="text-align: left">
+                                <input type="checkbox" id="arrived_{{num}}" name="arrived_{{num}}"
+                                        {{ "checked" if arrived else "" }}/>
+                            <span class="team-name">{{ num }} - {{ name }}</span>
                             </span>
                         </div>
                     </div>
