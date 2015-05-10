@@ -1,6 +1,18 @@
 {% extends "../admin.html" %}
 
 {% block local_css %}
+<style type="text/css">
+    div.arrivals-list {
+        max-height: 470px;
+        overflow-y: scroll;
+        overflow-x: hidden;
+    }
+
+    div.list-header {
+        text-align: center;
+        font-weight: bold;
+    }
+</style>
 {% end %}
 
 {% block local_scripts %}
@@ -17,6 +29,7 @@
         <form id="registration" role="form" class="form-horizontal">
             <fieldset>
                 <div class="form-group">
+                    <!--
                     <ul class="pager" style="margin:0px">
                         <li id="page-down" class="previous"><a href="#">&lt;&lt;</a></li>
                         <li id="page-up" class="next"><a href="#">&gt;&gt;</a></li>
@@ -24,8 +37,10 @@
                     <label
                             class="col-md-3 col-md-offset-5 control-label text-center"
                             style="position:absolute;top:0px;">Equipe arrivée ?</label>
+                    -->
+                    <div class="row list-header">Equipe arrivée ?</div>
                 </div>
-                <div class="form-group">
+                <div class="form-group arrivals-list">
                 {% for num, name, arrived in arrivals %}
                     <div id="team-row_{{ num }}" class="row team-row">
                         <label class="control-label col-md-5">{{ num }} - {{ name }}</label>
