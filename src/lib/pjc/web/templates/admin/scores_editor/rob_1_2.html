@@ -17,10 +17,10 @@
         <fieldset>
             <div class="form-group">
                 <div class="row">
-                    <label class="control-label col-md-3">&nbsp;</label>
-                    <div class="row col-md-9">
+                    <label class="control-label col-lg-3 col-md-3">&nbsp;</label>
+                    <div class="row col-lg-9 col-md-9">
                     {% for hdr in ('Temps total', 'Secteurs parcourus') %}
-                        <div class="form-group col-md-3">
+                        <div class="form-group col-lg-3 col-md-3">
                             <label class="control-label col-header">{{ hdr }}</label>
                         </div>
                     {% end %}
@@ -30,14 +30,14 @@
                 {% for score in scores %}
                     {% set num = score.team_num %}
                     <div id="team-row_{{ num }}" class="row team-row">
-                        <label class="control-label col-md-3">{{ num }} - {{ score.team_name }}</label>
-                        <div class="row col-md-9">
-                            <div class="form-group col-md-3">
+                        <label class="control-label col-lg-3 col-md-3">{{ num }} - {{ score.team_name }}</label>
+                        <div class="row col-lg-9 col-md-9">
+                            <div class="form-group col-lg-3 col-md-3">
                                 <input class="form-control match-duration" id="total_time_{{ num }}" name="total_time_{{ num }}"
                                        placeholder="M:SS" style="text-align:center"
                                        type="text" required value="{{score.total_time}}">
                             </div>
-                            <div class="form-group col-md-3">
+                            <div class="form-group col-lg-3 col-md-3">
                                 <input class="form-control digits" id="sections_{{ num }}" name="sections_{{ num }}"
                                        placeholder="0" style="text-align:center"
                                        min="0" max="12"
