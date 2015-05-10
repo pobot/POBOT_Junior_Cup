@@ -5,21 +5,22 @@
 {% module AdminPageTitle("Pointage des équipes") %}
 
 <style>
-    table.arrivals td.arrived {
-        background-image: url("/img/status-0.png");
-        background-repeat: no-repeat;
-        background-position: 2em;
+    #scroller {
+        height: 593px;
+        overflow-x: hidden;
+        overflow-y: scroll;
     }
 </style>
 
 <div class="row">
-    <div class="col-md-6 col-md-offset-3">
+    <div id="scroller" class="col-md-6 col-md-offset-3">
         <table class="table table-striped translucent arrivals">
+            {% set glyphs = ['glyphicon-remove text-danger', 'glyphicon-ok text-success'] %}
             {% for num, name, arrived in arrivals %}
             <tr>
                 <th class="text-right col-md-6">{{ num }} - {{ name }}</th>
-                <td class="col-md-6 {% if arrived %} arrived {% end %}">
-                    &nbsp;
+                <td class="col-md-6 text-center">
+                    <span class="glyphicon {{ glyphs[arrived] }}"></span>
                 </td>
             </tr>
             {% end %}
