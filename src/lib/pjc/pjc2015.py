@@ -3,6 +3,9 @@
 
 """ Module gathering the specialized implementations for 2015 edition rules
 """
+
+import sys
+
 from .tournament import RoboticsScore
 
 __author__ = 'eric'
@@ -62,7 +65,7 @@ class Round3Score(RoboticsScore):
         how many passengers have ben transported at the end of the round
         time.
         """
-        return 0
+        return sys.maxint
 
     def evaluate_action_credits(self):
         return self.passengers
