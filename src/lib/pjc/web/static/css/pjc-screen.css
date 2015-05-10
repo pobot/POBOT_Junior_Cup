@@ -82,10 +82,10 @@ table.final-ranking tr.winner {
     color: gold;
 }
 
-table.final-ranking tr.winner td {
+table.final-ranking tr.winner th {
     background-image: url("/img/winner_cup.png");
     background-repeat: no-repeat;
-    background-position: right center;
+    background-position: left center;
     background-size: auto 80%;
 }
 
