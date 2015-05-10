@@ -104,14 +104,7 @@ class ProgressTable(UIModuleBase):
         planning = self.Planning(*[t.strftime("%H:%M") for t in times])
 
         now = datetime.datetime.now()
-        today = now.date()
         current_time = now.time()
-        planning_limits = [
-            datetime.datetime.combine(today, t)
-            for t in times
-        ]
-        robotics_limits = planning_limits[:3]
-        research_limit = planning_limits[3]
 
         status_rob, status_research, _ = tournament.get_completion_status()
 
