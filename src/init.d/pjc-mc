@@ -12,7 +12,7 @@
 ### END INIT INFO
 
 PATH=/sbin:/usr/sbin:/bin:/usr/bin
-DESC="PJC Competition Management application server"
+DESC="PJC Master of Ceremony application server"
 NAME=pjc-mc
 DAEMON=/opt/pjc-mc/bin/webapp.py
 # DAEMON_ARGS="<optional daemon arguments>"
