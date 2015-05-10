@@ -310,7 +310,7 @@ class ScholarLevel(object):
             try:
                 self.code = int(value)
                 self.orig = None
-            except TypeError:
+            except (TypeError, ValueError):
                 self.code = self.encode(value)
                 self.orig = value
             self.label = self.labels[self.code]
@@ -350,12 +350,14 @@ class TeamPlanning(object):
             else:
                 time, assignment = entry, None
 
-            if isinstance(time, basestring):
-                time = datetime.datetime.strptime(time, "%H:%M").time()
-            elif isinstance(time, datetime.datetime):
-                time = time.time()
-            elif not isinstance(time, datetime.time):
-                raise ValueError('invalid planning time (%s)' % time)
+            if not isinstance(time, datetime.time):
+                if isinstance(time, basestring):
+                    time = datetime.datetime.strptime(time, "%H:%M").time()
+                elif isinstance(time, datetime.datetime):
+                    time = time.time()
+                else:
+                    raise ValueError('invalid planning time (%s)' % time)
+
             if i < match_count:
                 self.matches[i] = self.Match(time, assignment)
             else:
@@ -393,10 +395,13 @@ class TeamPlanning(object):
 
         return planning_start, planning_end
 
+    def __str__(self):
+        return str(self.times)
+
 
 class Team(object):
 
-    def __init__(self, num, name, school, level, city, department, present, planning):
+    def __init__(self, num, name, school, level, city, department, present, planning=None):
         self.num = int(num)
         self.name = name
         self.school = school
@@ -431,7 +436,7 @@ class Team(object):
         return "%d - %s" % (self.num, self.name)
 
 
-TeamCSVData = namedtuple('TeamCSVData', 'num name level school city dept match1 match2 match3 jury check')
+TeamCSVData = namedtuple('TeamCSVData', 'num name level school city dept')
 
 
 class DuplicatedTeam(Exception):
@@ -442,6 +447,7 @@ class DuplicatedTeam(Exception):
 class Tournament(object):
     """ The global tournament
     """
+    ITEMS_DURATION = (10, 10, 10, 30)
 
     def __init__(self, robotics_score_types=None):
         self._robotics_score_types = robotics_score_types
@@ -457,6 +463,7 @@ class Tournament(object):
             datetime.time(17, 00),  # time limit for round 3 matches
             datetime.time(17, 00)   # time limit for presentations
         ]
+        self._start_time = datetime.time.min
 
     @property
     def planning(self):
@@ -466,17 +473,18 @@ class Tournament(object):
     def planning(self, planning):
         self._planning = planning
 
-    def initialize_with_teams_data(self, team_fp):
-        item_start_times = [datetime.time() for _ in range(4)]
-        rdr = csv.reader(team_fp)
-        for team_data in (TeamCSVData(*f) for f in rdr):
-            planning = TeamPlanning((team_data.match1, team_data.match2, team_data.match3, team_data.jury))
-            # keep latest item start times for global planning computation
-            for i, time in enumerate(planning.times):
-                if time > item_start_times[i]:
-                    item_start_times[i] = time
+    @property
+    def start_time(self):
+        return self._start_time
 
-            # level = ScholarLevel.encode(team_data.level)
+    @start_time.setter
+    def start_time(self, start_time):
+        self._start_time = start_time
+
+    def load_teams_info(self, fp):
+        fp.seek(0)
+        rdr = csv.reader(fp)
+        for team_data in (TeamCSVData(*f) for f in rdr):
             level = ScholarLevel(team_data.level)
             self.add_team(Team(
                 team_data.num,
@@ -485,20 +493,61 @@ class Tournament(object):
                 level=level,
                 city=team_data.city,
                 department=team_data.dept,
-                present=False,
-                planning=planning
+                present=False
             ))
+
+    def load_teams_plannings(self, fp):
+        fp.seek(0)
+        rdr = csv.reader(fp)
+
+        # first line is the header, which gives us the time slots and the X position of the planning data (-> x0)
+        x0 = 0
+        cells = rdr.next()
+        for x0, time_slot in enumerate(cells):
+            if time_slot:
+                break
+        time_slots = [datetime.datetime.strptime(t, "%H:%M").time() for t in cells[x0:]]
+
+        # process team lines
+        in_teams = False
+        for cells in rdr:
+            team_num = cells[0]
+            if team_num:
+                in_teams = True
+                team_num = int(team_num)
+                planning_cells = cells[x0:]
+                slots_indices = [planning_cells.index(s) for s in ('M1', 'M2', 'M3', 'EXP')][:4]
+                planning = TeamPlanning([time_slots[i] for i in slots_indices])
+
+                self._teams[team_num].planning = planning
+
+            elif in_teams:
+                break
+
+    def consolidate_planning(self):
+        earliest_start_time = datetime.time.max
+        latest_start_times = [datetime.time() for _ in range(4)]
+
+        for team in self.registered_teams:
+            for i, t in enumerate(zip(team.planning.times, latest_start_times)):
+                team_time, latest_time = t
+                if team_time > latest_time:
+                    latest_start_times[i] = team_time
+                if team_time < earliest_start_time:
+                    earliest_start_time = team_time
 
         # advance latest start times by the duration of the corresponding items
         # so that we'll get the time at which all teams should have completed theirs
         today = datetime.date.today()   # dummy date part used for using timedeltas with time instances
         self.planning = [
             (datetime.datetime.combine(today, t) + datetime.timedelta(minutes=m)).time()
-            for t, m in zip(item_start_times, (15, 15, 15, 30))
+            for t, m in zip(latest_start_times, self.ITEMS_DURATION)
         ]
+        self._start_time = earliest_start_time
 
-        # finalize the planning by assigning tables and jury numbers
+    def assign_tables_and_juries(self):
         all_teams = self.registered_teams
+
         start_table = 0
         for match in range(3):
             num = start_table
@@ -506,6 +555,7 @@ class Tournament(object):
                 team.planning.matches[match].table = num + 1    # human friendly numbers start at 1
                 num = (num + 1) % 3
             start_table = (start_table + 1) % 3
+            
         num = 0
         for team in all_teams:
             team.planning.presentation.jury = num + 1
@@ -805,6 +855,7 @@ class Tournament(object):
 
         d['teams'] = dict([(team.num, team.serialize())for team in self._teams.values()])
         d['planning'] = [t.strftime('%H:%M') for t in self._planning]
+        d['start_time'] = self._start_time.strftime('%H:%M')
         d['robotics_rounds'] = [r.serialize() for r in self._robotics_rounds]
         d['research_evaluations'] = self._research_evaluations.serialize()
         d['jury_evaluations'] = self._jury_evaluations.serialize()
@@ -814,6 +865,7 @@ class Tournament(object):
         self.deserialize_teams(d['teams'])
 
         self.planning = [datetime.datetime.strptime(s, "%H:%M").time() for s in d['planning']]
+        self.start_time = datetime.datetime.strptime(d['start_time'], "%H:%M").time()
 
         self._robotics_rounds = []
         rounds_dict = d['robotics_rounds']
@@ -838,16 +890,6 @@ class Tournament(object):
         :return: the bounds of the event time extent
         :rtype: tuple of datetime.time
         """
-        start_time = datetime.time.max
-        end_time = datetime.time.min
-
-        for team in self.registered_teams:
-            start, end = team.planning.extent
-            if start < start_time:
-                start_time = start
-            if end > end_time:
-                end_time = end
-
-        return start_time, end_time
+        return self.start_time, max(self.planning)
 
 
