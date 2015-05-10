@@ -56,7 +56,7 @@ update_build_tree:
 	# init script
 	cp -a src/init.d/$(APP_NAME) $(BUILD_INIT_D)
 
-	# teams list
+	# teams and planning files for tournament initialization
 	cp -a src/var/* $(BUILD_VAR_LIB)
 
 	# requirements
