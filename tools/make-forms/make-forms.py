@@ -6,6 +6,7 @@ __author__ = 'Eric Pascual'
 import argparse
 import os
 import datetime
+import textwrap
 
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, PageBreak, Image, ListFlowable, Flowable
 from reportlab.lib.styles import ParagraphStyle
@@ -446,6 +447,9 @@ class PlanningFlowable(Flowable):
 
         today = datetime.datetime.today()
         start_time, end_time = (datetime.datetime.combine(today, t) for t in self.tournament.get_planning_time_span())
+        # round bounds to the nearest full hour
+        start_time = start_time.replace(minute=0)
+        end_time = end_time.replace(hour=end_time.hour + 1, minute=0)
         t0_min = self._total_minutes(start_time)
         dt = TeamPlanning.Match.SLOT_DURATION
 
@@ -481,7 +485,7 @@ class PlanningFlowable(Flowable):
 
         x_max = x
 
-        x = self.CHART_X0 - 0.1 * inch
+        x = self.CHART_X0 - 0.2 * inch
         y = self.CHART_Y0
 
         match_colors = [
@@ -547,9 +551,11 @@ class PlanningFlowable(Flowable):
 
 
 def generate_planning(tournament, doc=None):
-    story = PageHeader(title="Planning des passages", page_size=doc.pagesize).get_story() + [PlanningFlowable(tournament)]
-
-    return story
+    return \
+        PageHeader(title="Planning des passages", page_size=doc.pagesize).get_story() + \
+        [
+            PlanningFlowable(tournament)
+        ]
 
 
 _generators = {
@@ -622,10 +628,14 @@ if __name__ == '__main__':
         formatter_class=argparse.RawTextHelpFormatter
     )
 
-    parser.add_argument('-d', '--data',
+    parser.add_argument('-t', '--teams-file',
                         help='teams data file\n(default: "%(default)s")',
                         type=file,
                         default='teams.csv')
+    parser.add_argument('-p', '--planning-file',
+                        help='planning data file\n(default: "%(default)s")',
+                        type=file,
+                        default='planning.csv')
     parser.add_argument('-o', '--output_dir',
                         help='output directory, created if not found\n(default: "%(default)s")',
                         type=output_dir,
@@ -640,10 +650,22 @@ if __name__ == '__main__':
     if not os.path.exists(args.output_dir):
         os.makedirs(args.output_dir)
 
-    print('using data from : %s' % os.path.abspath(args.data.name))
+    print(
+        textwrap.dedent("""
+        input files :
+        - %s
+        - %s
+        """
+        ).strip() % (os.path.abspath(args.teams_file.name), os.path.abspath(args.planning_file.name))
+    )
 
     _tournament = Tournament()
-    _tournament.initialize_with_teams_data(team_fp=args.data)
+    print('loading team info')
+    _tournament.load_teams_info(fp=args.teams_file)
+    print('loading teams plannings')
+    _tournament.load_teams_plannings(fp=args.planning_file)
+    _tournament.assign_tables_and_juries()
+    _tournament.consolidate_planning()
 
     print('generating documents in : %s' % args.output_dir)
     for code in _generators.keys():
@@ -655,7 +677,9 @@ if __name__ == '__main__':
                 filename=os.path.join(args.output_dir, pdf_file_name),
                 pagesize=page_size,
                 topMargin=0.5 * inch,
-                bottomMargin=0.5 * inch
+                bottomMargin=0.5 * inch,
+                title="POBOT Junior Cup " + label,
+                author="POBOT"
             )
             print('- %s : %s' % (label, pdf_file_name))
             doc_story = func(_tournament, doc=pdf_doc)
