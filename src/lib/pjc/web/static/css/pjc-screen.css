@@ -85,7 +85,7 @@ table.final-ranking tr.winner {
 table.final-ranking tr.winner th {
     background-image: url("/img/winner_cup.png");
     background-repeat: no-repeat;
-    background-position: left center;
+    background-position: 20%;
     background-size: auto 80%;
 }
 
