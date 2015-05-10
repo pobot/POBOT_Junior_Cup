@@ -27,9 +27,9 @@
     <thead>
     <tr>
         <th rowspan="2">&nbsp;</th>
-        <th>Rob. 1</th>
-        <th>Rob. 2</th>
-        <th>Rob. 3</th>
+        <th>Epr. 1</th>
+        <th>Epr. 2</th>
+        <th>Epr. 3</th>
         <th>Exposé</th>
     </tr>
     <tr class="planning">
@@ -65,10 +65,11 @@ $(document).ready(function() {
         return parseInt(s.substr(0, 2)) * 60 + parseInt(s.substr(3, 2));
     }
     function check_if_late(elt, clock) {
-        var limit = to_minutes(elt.text());
+        var limit = to_minutes(elt.text().trim());
         if (limit - clock > 10) {
             // we have time for the moment
             elt.addClass("on_schedule");
+
         } else if (limit - clock > 0) {
             // close to the limit
             elt.addClass("close_to_limit");
@@ -77,7 +78,7 @@ $(document).ready(function() {
             elt.addClass("late");
         }
     }
-    var clock = to_minutes($("#clock").text());
+    var clock = to_minutes($("#clock").text().trim());
     $("span.limit").each(function(index) {
         check_if_late($(this), clock);
     });
