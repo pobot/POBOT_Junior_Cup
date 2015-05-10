@@ -20,6 +20,7 @@ class PJCWebApp(tornado.web.Application):
     TOURNAMENT_DATA_FILE = 'tournament.dat'
 
     TEAMS_DATA_FILE = 'teams.csv'
+    PLANNING_DATA_FILE = 'planning.csv'
 
     ROBOTICS_ROUND_TYPES = (Round1Score, Round2Score, Round3Score)
 
@@ -111,15 +112,31 @@ class PJCWebApp(tornado.web.Application):
         """ Initializes a tournament instance, loading the teams definition if the related configuration
         file exists
         """
-        teams_cfg = os.path.join(self._data_home, self.TEAMS_DATA_FILE)
-        if os.path.exists(teams_cfg):
-            self.log.info('loading teams configuration from %s' % teams_cfg)
-            with file(teams_cfg, 'rt') as fp:
-                tournament.initialize_with_teams_data(fp)
+        teams_file = os.path.join(self._data_home, self.TEAMS_DATA_FILE)
+        if os.path.exists(teams_file):
+            self.log.info('loading teams from %s' % teams_file)
+            with file(teams_file, 'rt') as fp:
+                tournament.load_teams_info(fp)
             self.log.info('... done')
-            self.save_tournament()
         else:
-            self.log.warn('no team configuration found in %s' % self._data_home)
+            self.log.warn('no team file found in %s' % self._data_home)
+
+        planning_file = os.path.join(self._data_home, self.PLANNING_DATA_FILE)
+        if os.path.exists(planning_file):
+            self.log.info('loading planning from %s' % planning_file)
+            with file(planning_file, 'rt') as fp:
+                tournament.load_teams_plannings(fp)
+
+            self.log.info('consolidating planning')
+            tournament.consolidate_planning()
+
+            self.log.info('assigning tables and juries')
+            tournament.assign_tables_and_juries()
+
+            self.log.info('... done')
+
+        else:
+            self.log.warn('no planning file found in %s' % self._data_home)
 
     @property
     def _tournament_file_path(self):
