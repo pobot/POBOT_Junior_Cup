@@ -15,4 +15,8 @@ tools/jury_sheets.pdf
 tools/approval_sheets.pdf
 tools/match_sheets.pdf
 tools/make-forms/output
-assets/bootstrap.zip
+assets/*
+tools/make-forms/teams.csv
+
+
+tools/make-forms/planning.csv
