@@ -363,6 +363,14 @@ class TeamPlanning(object):
             else:
                 self.presentation = self.Presentation(time, assignment)
 
+    def __getitem__(self, item):
+        if 0 <= item < 3:
+            return self.matches[item]
+        elif item == 3:
+            return self.presentation
+        else:
+            raise IndexError()
+
     def serialize(self):
         return [(m.time.strftime('%H:%M'), m.table) for m in self.matches] + \
                [(self.presentation.time.strftime('%H:%M'), self.presentation.jury)]

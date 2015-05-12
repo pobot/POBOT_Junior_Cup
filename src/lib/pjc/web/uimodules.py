@@ -134,9 +134,9 @@ class ProgressTable(UIModuleBase):
 
 
 class NextSchedules(UIModuleBase):
-    Schedule = namedtuple('Schedule', 'team_num team_name what when')
+    Schedule = namedtuple('Schedule', 'team_num team_name what detail')
 
-    WHAT_LABELS = ['Epreuve 1', 'Epreuve 2', 'Epreuve 3', 'Exposé']
+    ITEM_LABELS = ['Epreuve 1', 'Epreuve 2', 'Epreuve 3', 'Exposé']
 
     @property
     def template_name(self):
@@ -166,10 +166,10 @@ class NextSchedules(UIModuleBase):
                 self.Schedule(
                     team.num,
                     team.name,
-                    self.WHAT_LABELS[what],
-                    when
+                    self.ITEM_LABELS[item_index],
+                    team.planning[item_index]
                 )
-                for when, team, what in (next_appts[:6] if tv_display else next_appts)
+                for when, team, item_index in (next_appts[:6] if tv_display else next_appts)
             ],
             'emergency_class': emergency
         }

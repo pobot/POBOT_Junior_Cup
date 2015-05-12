@@ -93,7 +93,7 @@ td.schedule-what {
     text-align: right !important;
 }
 
-td.schedule-when {
+td.schedule-when, td.schedule-where {
     text-align: left !important;
 }
 
