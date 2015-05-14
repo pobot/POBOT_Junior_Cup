@@ -39,7 +39,6 @@ update_build_tree:
 		--include "*.py" \
 		--include "*/" \
 		--include "*.html" \
-		--include "*.html" \
 		--include "*.js" \
 		--include "*.css" \
 		--include "*.png" \
@@ -50,6 +49,7 @@ update_build_tree:
 		--include "*.woff" \
 		--include "*.ttf" \
 		--include "*.pdf" \
+		--include "manifest.json" \
 		--exclude "*" \
 		src/lib/ $(BUILD_OPT)/lib
 

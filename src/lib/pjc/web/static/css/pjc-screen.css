@@ -10,15 +10,17 @@ table {
     padding: 0 2%;
 }
 
-div.logo {
-    z-index: -10;
-    position: fixed;
-    bottom: 20px;
-    left: 20px;
-    opacity: 0.1;
-    background: url("/img/pobot-logo-bw.png") no-repeat;
-    width: 545px;
-    height: 500px;
+@media screen and (min-width: 600px) {
+    div.logo {
+        z-index: -10;
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        opacity: 0.1;
+        background: url("/img/pobot-logo-bw.png") no-repeat;
+        width: 545px;
+        height: 500px;
+    }
 }
 
 .translucent {
@@ -102,7 +104,6 @@ legend {
 }
 
 .score-editor-scroller {
-    height: 470px;
     overflow-x: hidden;
     overflow-y: scroll;
 }

@@ -16,8 +16,8 @@
         <legend>Carrousel affichage</legend>
 
         <div class="form-group">
-            <label for="display_pause" class="col-md-3 control-label">Pause affichage (secs.)</label>
-            <div class="col-md-1">
+            <label for="display_pause" class="col-sm-3 control-label">Pause affichage (secs.)</label>
+            <div class="col-sm-1">
                 <input class="form-control digits" id="display_pause" name="display_pause"
                        placeholder="secs" style="text-align:center"
                        min="1"
@@ -28,15 +28,15 @@
         </div>
 
         <div class="form-group">
-            <label class="col-md-3 control-label">Pages à afficher</label>
+            <label class="col-sm-3 control-label">Pages à afficher</label>
         </div>
 
         <div class="form-group" id="sequence">
         {% for display, label, selected in selectable_displays %}
             {% set id_name = "seq_" + display %}
             <div class="row">
-                <div class="col-md-offset-3">
-                    <div class="row input-group col-md-6">
+                <div class="col-sm-offset-3">
+                    <div class="row input-group col-sm-6">
                         <span class="input-group-addon">
                             <input type="checkbox" id="{{ id_name }}" name="{{ id_name }}" class="sequence"
                             {{ "checked" if selected else "" }} >
@@ -48,7 +48,7 @@
         {% end %}
         </div>
         <div class="row has-error">
-            <label id="sequence-error" class="col-md-offset-3 control-label">&nbsp;</label>
+            <label id="sequence-error" class="col-sm-offset-3 control-label">&nbsp;</label>
         </div>
 
     </fieldset>
@@ -56,9 +56,9 @@
     <fieldset>
         <legend>Message</legend>
         <div class="form-group">
-            <label for="msg_level" class="col-md-3 control-label">Niveau</label>
+            <label for="msg_level" class="col-sm-3 control-label">Niveau</label>
 
-            <div class="col-md-2">
+            <div class="col-sm-2">
                 <select class="form-control" id="msg_level" name="msg_level">
                     <option value="info">information</option>
                     <option value="warning">attention</option>
@@ -67,9 +67,9 @@
             </div>
         </div>
         <div class="form-group">
-            <label for="msg_text" class="col-md-3 control-label">Texte</label>
+            <label for="msg_text" class="col-sm-3 control-label">Texte</label>
 
-            <div class="col-md-8">
+            <div class="col-sm-8">
                 <div class="input-group">
                     <textarea class="form-control" id="msg_text" name="msg_text" rows="3"></textarea>
                     <span class="input-group-addon">

@@ -34,4 +34,14 @@ $(document).ready(function () {
         document.location.href = "/";
     });
 
+    var scroller = $('div.arrivals-list') ;
+
+    function resize_scroller() {
+        var window_height = $(window).height();
+        scroller.height(window_height - 300);
+    }
+
+    $(window).resize(resize_scroller);
+    resize_scroller();
+
 });

@@ -6,10 +6,10 @@
         {% set detail = item.detail %}
         {% set when = detail.time %}
         <tr>
-            <th class="col-md-6 col-lg-6 team-name">{{ item.team_num }} - {{ item.team_name }}</th>
-            <td class="col-md-4 col-lg-4 schedule-what">{{ item.what }} à</td>
-            <td class="col-md-1 col-lg-1 schedule-when {{ emergency_class(when) }}">{{ when.strftime('%H:%M') }}</td>
-            <td class="col-md-1 col-lg-1 schedule-where">
+            <th class="col-sm-6 team-name">{{ item.team_num }} - {{ item.team_name }}</th>
+            <td class="col-sm-4 schedule-what">{{ item.what }} à</td>
+            <td class="col-sm-1 schedule-when {{ emergency_class(when) }}">{{ when.strftime('%H:%M') }}</td>
+            <td class="col-sm-1 col-md-1 col-lg-1 schedule-where">
                 {% if isinstance(detail, TeamPlanning.Match) %}
                 table {{ detail.table }}
                 {% else %}

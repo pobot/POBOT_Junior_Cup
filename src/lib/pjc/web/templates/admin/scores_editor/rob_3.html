@@ -18,10 +18,10 @@
         <fieldset>
             <div class="form-group">
                 <div class="row">
-                    <label class="control-label col-lg-3 col-md-3">&nbsp;</label>
-                    <div class="row col-lg-9 col-md-9">
+                    <label class="control-label col-sm-3">&nbsp;</label>
+                    <div class="row col-sm-9">
                     {% for hdr in ('Temps total', 'Passagers') %}
-                        <div class="form-group col-lg-3 col-md-3">
+                        <div class="form-group col-sm-3">
                             <label class="control-label col-header">{{ hdr }}</label>
                         </div>
                     {% end %}
@@ -31,14 +31,14 @@
                     {% for score in scores %}
                         {% set num = score.team_num %}
                         <div id="team-row_{{ num }}" class="row team-row">
-                            <label class="control-label col-lg-3 col-md-3">{{ num }} - {{ score.team_name }}</label>
-                            <div class="row col-lg-9 col-md-9">
-                                <div class="form-group col-lg-3 col-md-3">
+                            <label class="control-label col-sm-3">{{ num }} - {{ score.team_name }}</label>
+                            <div class="row col-sm-9">
+                                <div class="form-group col-sm-3">
                                     <input class="form-control col-md-2 match-duration" id="total_time_{{ num }}" name="total_time_{{ num }}"
                                            placeholder="M:SS" style="text-align:center"
                                            type="text" required value="{{score.total_time}}">
                                 </div>
-                                <div class="form-group col-lg-3 col-md-3">
+                                <div class="form-group col-sm-3">
                                     <input class="form-control digits" id="passengers_{{ num }}" name="passengers_{{ num }}"
                                            placeholder="0" style="text-align:center"
                                            min="0"
@@ -50,7 +50,7 @@
                 </div>
 
                 <div class="row has-error">
-                    <label id="validation_errors" class="col-md-offset-3 control-label">&nbsp;</label>
+                    <label id="validation_errors" class="col-sm-offset-3 control-label">&nbsp;</label>
                 </div>
             </div>
 

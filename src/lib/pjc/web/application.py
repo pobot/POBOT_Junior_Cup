@@ -59,7 +59,8 @@ class PJCWebApp(tornado.web.Application):
             (r"/js/(.*)", tornado.web.StaticFileHandler, {"path": os.path.join(self._res_home, 'js')}),
             (r"/img/(.*)", tornado.web.StaticFileHandler, {"path": os.path.join(self._res_home, 'img')}),
             (r"/fonts/(.*)", tornado.web.StaticFileHandler, {"path": os.path.join(self._res_home, 'fonts')}),
-            (r"/docs/(.*)", tornado.web.StaticFileHandler, {"path": os.path.join(self._res_home, 'docs')})
+            (r"/docs/(.*)", tornado.web.StaticFileHandler, {"path": os.path.join(self._res_home, 'docs')}),
+            (r"/(.*)", tornado.web.StaticFileHandler, {"path": self._res_home})
         ]
 
 

@@ -6,20 +6,33 @@
 
 <style>
     #scroller {
-        height: 593px;
         overflow-x: hidden;
         overflow-y: scroll;
     }
 </style>
 
+<script>
+$(document).ready(function () {
+    var scroller = $('#scroller');
+
+    function resize_scroller() {
+        var window_height = $(this).height();
+        scroller.height(window_height - 200);
+    }
+
+    $(window).resize(resize_scroller);
+    resize_scroller();
+});
+</script>
+
 <div class="row">
-    <div id="scroller" class="col-md-6 col-md-offset-3">
+    <div id="scroller" class="col-sm-8 col-md-6 col-sm-offset-2 col-md-offset-3">
         <table class="table table-striped translucent arrivals">
             {% set glyphs = ['glyphicon-remove text-danger', 'glyphicon-ok text-success'] %}
             {% for num, name, arrived in arrivals %}
             <tr>
-                <th class="text-right col-md-6">{{ num }} - {{ name }}</th>
-                <td class="col-md-6 text-center">
+                <th class="text-right col-sm-6">{{ num }} - {{ name }}</th>
+                <td class="col-sm-6 text-center">
                     <span class="glyphicon {{ glyphs[arrived] }}"></span>
                 </td>
             </tr>

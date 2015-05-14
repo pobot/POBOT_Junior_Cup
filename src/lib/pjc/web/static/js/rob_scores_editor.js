@@ -51,4 +51,14 @@ $(document).ready(function() {
         event.preventDefault();
         document.location.href = "/";
     });
+
+    var scroller = $('div.score-editor-scroller');
+
+    function resize_scroller() {
+        var window_height = $(window).height();
+        scroller.height(window_height - 320);
+    }
+
+    $(window).resize(resize_scroller);
+    resize_scroller();
 });

@@ -17,10 +17,10 @@
         <fieldset>
             <div class="form-group">
                 <div class="row">
-                    <label class="control-label col-md-3">&nbsp;</label>
-                    <div class="row col-md-9">
-                    {% for hdr in ('Soutenu', 'Choix du sujet', 'Recherche', 'Présentation', 'Poster') %}
-                        <div class="form-group col-md-2">
+                    <label class="control-label col-sm-3">&nbsp;</label>
+                    <div class="row col-sm-9">
+                    {% for hdr in ('Soutenu', 'Sujet', 'Recherche', 'Présentation', 'Poster') %}
+                        <div class="form-group col-sm-2">
                             <label class="control-label text-left">{{ hdr }}</label>
                         </div>
                     {% end %}
@@ -30,10 +30,10 @@
                     {% for score in scores %}
                         {% set num = score.team_num %}
                         <div id="team-row_{{ num }}" class="row team-row">
-                            <label class="control-label col-md-3">{{ num }} - {{ score.team_name }}</label>
-                            <div class="row col-md-9">
+                            <label class="control-label col-sm-3">{{ num }} - {{ score.team_name }}</label>
+                            <div class="row col-sm-9">
                                 {% set shown = score[2] %}
-                                <div class="form-group col-md-2">
+                                <div class="form-group col-sm-2">
                                     <span class="input-group-addon">
                                         <input type="checkbox" id="shown_{{num}}" name="shown_{{num}}" {{ "checked" if shown else "" }} >
                                     </span>
@@ -41,7 +41,7 @@
                                 {% set points = score[3:] %}
                                 {% for i, fld in enumerate(('topic', 'research', 'presentation', 'poster')) %}
                                     {% set id_name = "%s_%d" % (fld, num) %}
-                                    <div class="form-group col-md-2">
+                                    <div class="form-group col-sm-2">
                                         <input class="form-control digits" id="{{ id_name }}" name="{{ id_name }}"
                                                placeholder="0" style="text-align:center"
                                                min="0" max="20"
@@ -54,7 +54,7 @@
                 </div>
 
                 <div class="row has-error">
-                    <label id="validation_errors" class="col-md-offset-3 control-label">&nbsp;</label>
+                    <label id="validation_errors" class="col-sm-offset-3 control-label">&nbsp;</label>
                 </div>
             </div>
 

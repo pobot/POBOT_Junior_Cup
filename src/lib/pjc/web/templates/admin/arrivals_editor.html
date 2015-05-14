@@ -3,7 +3,6 @@
 {% block local_css %}
 <style type="text/css">
     div.arrivals-list {
-        max-height: 470px;
         overflow-y: scroll;
         overflow-x: hidden;
     }
@@ -28,8 +27,8 @@
 {% module AdminPageTitle("Pointage des équipes") %}
 
 <div class="row">
-    <div class="col-md-3">&nbsp;</div>
-    <div class="col-md-6">
+    <div class="col-sm-3">&nbsp;</div>
+    <div class="col-sm-6">
         <form id="registration" role="form" class="form-horizontal">
             <fieldset>
                 <div class="form-group">
@@ -38,7 +37,7 @@
                 <div class="form-group arrivals-list">
                 {% for num, name, arrived in arrivals %}
                     <div id="team-row_{{ num }}" class="row team-row">
-                        <div class="col-md-12">
+                        <div class="col-sm-12">
                             <span class="input-group-addon" style="text-align: left">
                                 <input type="checkbox" id="arrived_{{num}}" name="arrived_{{num}}"
                                         {{ "checked" if arrived else "" }}/>
