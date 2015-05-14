@@ -1,0 +1,29 @@
+{
+    "short_name": "PJC MC",
+    "name": "POBOT Junior Cup Master of Ceremony",
+    "icons": [
+        {
+            "src": "/img/pobot-logo-1x.png",
+            "sizes": "48x48",
+            "type": "image/png"
+        },
+        {
+            "src": "/img/pobot-logo-2x.png",
+            "sizes": "96x96",
+            "type": "image/png"
+        },
+        {
+            "src": "/img/pobot-logo-3x.png",
+            "sizes": "144x144",
+            "type": "image/png"
+        },
+        {
+            "src": "/img/pobot-logo-4x.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        }
+    ],
+    "start_url": "/",
+    "display": "standalone",
+    "orientation": "landscape"
+}
