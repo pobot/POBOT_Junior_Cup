@@ -107,3 +107,8 @@ legend {
     overflow-x: hidden;
     overflow-y: scroll;
 }
+
+div.version {
+    text-align: center;
+    font-size: smaller;
+}
