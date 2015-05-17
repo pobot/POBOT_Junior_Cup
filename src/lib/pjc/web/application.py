@@ -18,6 +18,7 @@ class PJCWebApp(tornado.web.Application):
     """ The Web application
     """
     TOURNAMENT_DATA_FILE = 'tournament.dat'
+    VERSION_FILE = 'version.txt'
 
     TEAMS_DATA_FILE = 'teams.csv'
     PLANNING_DATA_FILE = 'planning.csv'
@@ -49,20 +50,19 @@ class PJCWebApp(tornado.web.Application):
         self._templates_home = os.path.join(root, "templates")
 
         self._handlers = \
-        admin.handlers + \
-        tv.handlers + \
-        api.handlers + \
-        [
-            (r"/help", self.WSHHelp),
+            admin.handlers + \
+            tv.handlers + \
+            api.handlers + \
+            [
+                (r"/help", self.WSHHelp),
 
-            (r"/css/(.*)", tornado.web.StaticFileHandler, {"path": os.path.join(self._res_home, 'css')}),
-            (r"/js/(.*)", tornado.web.StaticFileHandler, {"path": os.path.join(self._res_home, 'js')}),
-            (r"/img/(.*)", tornado.web.StaticFileHandler, {"path": os.path.join(self._res_home, 'img')}),
-            (r"/fonts/(.*)", tornado.web.StaticFileHandler, {"path": os.path.join(self._res_home, 'fonts')}),
-            (r"/docs/(.*)", tornado.web.StaticFileHandler, {"path": os.path.join(self._res_home, 'docs')}),
-            (r"/(.*)", tornado.web.StaticFileHandler, {"path": self._res_home})
-        ]
-
+                (r"/css/(.*)", tornado.web.StaticFileHandler, {"path": os.path.join(self._res_home, 'css')}),
+                (r"/js/(.*)", tornado.web.StaticFileHandler, {"path": os.path.join(self._res_home, 'js')}),
+                (r"/img/(.*)", tornado.web.StaticFileHandler, {"path": os.path.join(self._res_home, 'img')}),
+                (r"/fonts/(.*)", tornado.web.StaticFileHandler, {"path": os.path.join(self._res_home, 'fonts')}),
+                (r"/docs/(.*)", tornado.web.StaticFileHandler, {"path": os.path.join(self._res_home, 'docs')}),
+                (r"/(.*)", tornado.web.StaticFileHandler, {"path": self._res_home})
+            ]
 
         self._lock = threading.Lock()
 
@@ -73,12 +73,17 @@ class PJCWebApp(tornado.web.Application):
         }
 
         self._data_home = settings_override['data_home']
+        self.log.info("data home: %s", self._data_home)
+
         if not os.path.exists(self._data_home):
             self.log.warning('creating data home (%s) - no team data available' % self._data_home)
             os.makedirs(self._data_home)
         elif not os.path.isdir(self._data_home):
             raise ValueError('data_home : path exists and is not a directory (%s)' % self._data_home)
         else:
+            self._version = self._get_version()
+            self.log.info('version: %s', self._version)
+
             checker_path = os.path.join(self._data_home, '$$tmp')
             try:
                 with file(checker_path, 'wt') as fp:
@@ -108,6 +113,18 @@ class PJCWebApp(tornado.web.Application):
             self.log.info('... done')
 
         super(PJCWebApp, self).__init__(self._handlers, **settings)
+
+    @property
+    def version(self):
+        return self._version
+
+    def _get_version(self):
+        version_file_path = os.path.join(self._data_home, self.VERSION_FILE)
+        try:
+            with open(version_file_path, 'rt') as fp:
+                return Version(fp)
+        except IOError:
+            return Version()
 
     def _initialize_tournament(self, tournament):
         """ Initializes a tournament instance, loading the teams definition if the related configuration
@@ -230,3 +247,19 @@ class PJCWebApp(tornado.web.Application):
         except KeyboardInterrupt:
             print # cosmetic to keep log messages nicely aligned
             self.log.info('SIGTERM caught')
+
+
+class Version(object):
+    def __init__(self, fp=None):
+        if fp:
+            v = (fp.readline() + '.0.0').split('.')[:3]
+            self.major, self.minor = [int(f) for f in v[:2]]
+            self.build = v[2]
+        else:
+            self.major = self.minor = self.build = None
+
+    def __str__(self):
+        if self.major:
+            return "%d.%d.%s" % (self.major, self.minor, self.build)
+        else:
+            return 'n/a'
