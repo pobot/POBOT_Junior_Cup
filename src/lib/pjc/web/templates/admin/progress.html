@@ -1,9 +1,19 @@
 {% extends "../admin.html" %}
 
+{% block local_scripts %}
+<script type="text/javascript">
+    $(document).ready(function() {
+        $.setup_scroller($('#scroller'), 220);
+    });
+</script>
+{% end %}
+
 {% block page_content %}
 
 {% module AdminPageTitle("Avancement de la compétition") %}
 
-{% module ProgressTable(application) %}
+<div id="scroller">
+    {% module ProgressTable(application) %}
+</div>
 
 {% end %}
