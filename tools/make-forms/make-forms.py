@@ -6,7 +6,7 @@ __author__ = 'Eric Pascual'
 import argparse
 import os
 import datetime
-import textwrap
+from textwrap import dedent
 
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, PageBreak, Image, ListFlowable, Flowable
 from reportlab.lib.styles import ParagraphStyle
@@ -589,8 +589,6 @@ class FormsDocTemplate(SimpleDocTemplate):
 
 
 if __name__ == '__main__':
-    from textwrap import dedent
-
     all_types = ''.join(_generators.keys())
 
     def doc_types(value):
@@ -651,7 +649,7 @@ if __name__ == '__main__':
         os.makedirs(args.output_dir)
 
     print(
-        textwrap.dedent("""
+        dedent("""
         input files :
         - %s
         - %s
