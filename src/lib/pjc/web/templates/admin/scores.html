@@ -1,9 +1,19 @@
 {% extends "../admin.html" %}
 
+{% block local_scripts %}
+<script type="text/javascript">
+    $(document).ready(function() {
+        $.setup_scroller($('#scroller'), 200);
+    });
+</script>
+{% end %}
+
 {% block page_content %}
 
 {% module AdminPageTitle("Scores actuels") %}
 
-{% module ScoresTable(application) %}
+<div id="scroller">
+    {% module ScoresTable(application) %}
+</div>
 
 {% end %}
