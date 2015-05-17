@@ -62,6 +62,10 @@ update_build_tree:
 	# requirements
 	cp -a requirements-server.txt $(BUILD_OPT)/requirements.txt
 
+	# version file
+	(echo `grep Version DEBIAN/control | cut -d' ' -f2`-`date +%y%m%d_%H%M` > $(BUILD_VAR_LIB)/version.txt)
+	@cat $(BUILD_VAR_LIB)/version.txt
+
 deploy: dist
 	scp $(DEBPKG_NAME).deb pi@pjc-display-1:
 
