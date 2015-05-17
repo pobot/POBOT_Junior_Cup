@@ -443,6 +443,9 @@ class Team(object):
     def __repr__(self):
         return "%d - %s" % (self.num, self.name)
 
+    def __cmp__(self, other):
+        return self.num.__cmp__(other.num)
+
 
 TeamCSVData = namedtuple('TeamCSVData', 'num name level school city dept')
 
