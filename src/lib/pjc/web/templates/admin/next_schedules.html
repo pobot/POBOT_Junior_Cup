@@ -1,11 +1,19 @@
 {% extends "../admin.html" %}
 
+{% block local_scripts %}
+<script type="text/javascript">
+    $(document).ready(function() {
+        $.setup_scroller($('#scroller'), 200);
+    });
+</script>
+{% end %}
+
 {% block page_content %}
 
 {% module AdminPageTitle("Prochains passages") %}
 
 <div class="row">
-    <div class="col-sm-10 col-sm-offset-1">
+    <div id="scroller" class="col-sm-10 col-sm-offset-1">
     {% module NextSchedules(application) %}
     </div>
 </div>
