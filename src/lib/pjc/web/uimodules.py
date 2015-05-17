@@ -129,7 +129,8 @@ class ProgressTable(UIModuleBase):
 
         return {
             "planning": planning,
-            "progress": paginate(progress, page_num, application.TV_PAGE_SIZE) if tv_display else progress
+            "progress": paginate(progress, page_num, application.TV_PAGE_SIZE) if tv_display else progress,
+            'tv_display': tv_display
         }
 
 
@@ -149,7 +150,7 @@ class NextSchedules(UIModuleBase):
             (time, team, team.planning.times.index(time))
             for team in application.tournament.teams(present_only=True)
             for time in team.planning.times if time >= now
-        ])
+        ], key=itemgetter(0, 1))
 
         def emergency(t):
             t_s, now_s = (_t.hour * 3600 + _t.minute * 60 + _t.second for _t in (t, now))
@@ -161,16 +162,37 @@ class NextSchedules(UIModuleBase):
             else:
                 return 'text-danger'
 
+        if tv_display:
+            # if we are building the list for the TV displays, we keep only the first slots,
+            # and try to make the list the most "natural" by not "truncating" the last one
+
+            # start with the first 6
+            default_count = 6
+            wrk_appts = next_appts[:default_count]
+
+            # if they are more items for the last listed slot, append them
+            # (it will fit the display, since at the most we'll add only 2 more)
+            if len(next_appts) > len(wrk_appts):
+                last_slot = wrk_appts[-1][0]
+                for appt in next_appts[default_count:]:
+                    if appt[0] == last_slot:
+                        wrk_appts.append(appt)
+                    else:
+                        break
+
+            next_appts = wrk_appts
+
+        schedules = [
+            self.Schedule(
+                team.num,
+                team.name,
+                self.ITEM_LABELS[item_index],
+                team.planning[item_index]
+            )
+            for when, team, item_index in next_appts
+        ]
         return {
-            'schedules': [
-                self.Schedule(
-                    team.num,
-                    team.name,
-                    self.ITEM_LABELS[item_index],
-                    team.planning[item_index]
-                )
-                for when, team, item_index in (next_appts[:6] if tv_display else next_appts)
-            ],
+            'schedules': schedules,
             'emergency_class': emergency
         }
 
