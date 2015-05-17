@@ -1,29 +1,16 @@
 {% extends "../admin.html" %}
 
+{% block local_scripts %}
+<script type="text/javascript">
+    $(document).ready(function() {
+        $.setup_scroller($('#scroller'), 200);
+    });
+</script>
+{% end %}
+
 {% block page_content %}
 
 {% module AdminPageTitle("Pointage des équipes") %}
-
-<style>
-    #scroller {
-        overflow-x: hidden;
-        overflow-y: scroll;
-    }
-</style>
-
-<script>
-$(document).ready(function () {
-    var scroller = $('#scroller');
-
-    function resize_scroller() {
-        var window_height = $(this).height();
-        scroller.height(window_height - 200);
-    }
-
-    $(window).resize(resize_scroller);
-    resize_scroller();
-});
-</script>
 
 <div class="row">
     <div id="scroller" class="col-sm-8 col-md-6 col-sm-offset-2 col-md-offset-3">
