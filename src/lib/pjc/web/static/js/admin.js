@@ -1,4 +1,9 @@
+var scroller = null ;
+var scroll_frozen_height = 0;
+
 $(document).ready(function() {
+    "use strict";
+
     Date.prototype.toHHMMSS = function () {
         var hours   = this.getHours();
         var minutes = this.getMinutes();
@@ -9,7 +14,8 @@ $(document).ready(function() {
         if (seconds < 10) {seconds = "0"+seconds;}
         var time    = hours+':'+minutes+':'+seconds;
         return time;
-    }
+    };
+
     function update_clock() {
         $("#clock").text(new Date().toHHMMSS());
     }
@@ -54,5 +60,23 @@ $(document).ready(function() {
         errorElement: 'span'
     });
 
+    function resize_scroller() {
+        if (scroller) {
+            var window_height = $(window).height();
+            scroller.height(window_height - scroll_frozen_height);
+        }
+    }
+
+    $(window).resize(resize_scroller);
+    resize_scroller();
+
+    $.setup_scroller = function(elt, frozen_height) {
+        scroller = elt;
+        scroller.css({"overflow-x": "hidden", "overflow-y": "auto"});
+
+        scroll_frozen_height = frozen_height;
+
+        window.dispatchEvent(new Event('resize'));
+    };
 
 });
