@@ -5,7 +5,7 @@ Avertissement
 -------------
 
 Le projet n'a pas été publié sur ce repository pour être réutilisé tel quel, car il est spécifique à notre
-compétition, et est de plus calé sur le règlement de l'édition 2014. L'adapter à d'autres règles de calcul est
+compétition, et est de plus calé sur le règlement de la dernière édition en date. L'adapter à d'autres règles de calcul est
 cependant très simple, l'objectif étant justement qu'il soit facilement réutilisable pour les éditions à venir.
 
 Il a été publié pour illustrer des exemples de solutions possibles utilisant Python et ses biliothèques pour traiter
