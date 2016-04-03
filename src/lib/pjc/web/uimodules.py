@@ -85,18 +85,19 @@ def paginate(data, page_num=1, page_size=0):
         return data
 
 
-class ProgressTable(UIModuleBase):
-    """ Tournament progress table
+class PlanningTable(UIModuleBase):
+    """ Tournament planning table
     """
     Planning = namedtuple('Planning', 'rob1 rob2 rob3 research')
     Status = namedtuple('Status', 'team_num team_name rob1 rob2 rob3 research')
+    StatusItem = namedtuple('StatusItem', 'status time')
 
     # tournament item statuses
     DONE, NOT_DONE, LATE = range(3)
 
     @property
     def template_name(self):
-        return "progress"
+        return "planning"
 
     def get_template_args(self, application, page_num=1, tv_display=False):
         tournament = application.tournament
@@ -116,15 +117,17 @@ class ProgressTable(UIModuleBase):
         progress = []
         for team in tournament.teams(present_only=True):
             planning_times = team.planning.times
-            robotics = [
-                self.DONE if s
-                else self.LATE if current_time > limit
-                else self.NOT_DONE
-                for s, limit in zip(status_rob[team.num-1], planning_times[:3])    # robotics_limits)
-            ]
-            research = self.DONE if status_research[team.num-1] \
-                else self.LATE if current_time > planning_times[-1] \
-                else self.NOT_DONE
+            robotics = [self.StatusItem(
+                self.DONE if status else self.LATE if current_time > limit else self.NOT_DONE,
+                limit
+            ) for status, limit in zip(status_rob[team.num-1], planning_times[:3])]
+
+            status = status_research[team.num-1]
+            limit = planning_times[-1]
+            research = self.StatusItem(
+                self.DONE if status else self.LATE if current_time > limit else self.NOT_DONE,
+                limit
+            )
             progress.append(self.Status(team.num, team.name, robotics[0], robotics[1], robotics[2], research))
 
         return {

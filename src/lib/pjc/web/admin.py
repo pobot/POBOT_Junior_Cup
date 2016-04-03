@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 import subprocess
 from tornado.web import HTTPError
 
-from pjc.web.ui import UIRequestHandler, ProgressDisplayHandler, ScoresDisplayHandler, \
+from pjc.web.ui import UIRequestHandler, PlanningDisplayHandler, ScoresDisplayHandler, \
     RankingDisplayHandler, NextSchedulesDisplayHandler
 from pjc.web.lib import parse_hhmm_time, format_hhmm_time
 from pjc.tournament import ResearchEvaluationScore, JuryEvaluationScore
@@ -36,7 +36,7 @@ class AdminHome(AdminUIHandler):
         return "home"
 
 
-class AdminProgress(AdminUIHandler, ProgressDisplayHandler):
+class AdminProgress(AdminUIHandler, PlanningDisplayHandler):
     pass
 
 

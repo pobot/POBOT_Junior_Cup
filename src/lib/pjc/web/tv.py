@@ -127,7 +127,7 @@ class TVContent(UIRequestHandler, SequencedDisplay):
 def get_selectable_displays():
     displays = (
         ('scores', 'Scores'),
-        ('progress', 'Avancement'),
+        ('planning', 'Planning'),
         ('ranking', 'Classement'),
         ('next_schedules', 'Prochains passages')
     )

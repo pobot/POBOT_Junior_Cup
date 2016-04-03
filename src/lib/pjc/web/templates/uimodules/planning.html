@@ -1,3 +1,5 @@
+{% from pjc.web.uimodules import PlanningTable %}
+
 <style>
     span.glyphicon {
         font-weight: normal;
@@ -21,19 +23,19 @@
     </tr>
     <tr class="planning">
         <th>
-            <span class="glyphicon glyphicon-time"></span>
+            <span class="glyphicon glyphicon-off"></span>
             <span id="planning_rob1" class="limit"> {{ planning.rob1 }}</span>
         </th>
         <th>
-            <span class="glyphicon glyphicon-time"></span>
+            <span class="glyphicon glyphicon-off"></span>
             <span id="planning_rob2" class="limit"> {{ planning.rob2 }}</span>
         </th>
         <th>
-            <span class="glyphicon glyphicon-time"></span>
+            <span class="glyphicon glyphicon-off"></span>
             <span id="planning_rob3" class="limit"> {{ planning.rob3 }}</span>
         </th>
         <th>
-            <span class="glyphicon glyphicon-time"></span>
+            <span class="glyphicon glyphicon-off"></span>
             <span id="planning_research" class="limit"> {{ planning.research }}</span>
         </th>
     </tr>
@@ -44,10 +46,15 @@
         {% for item in progress %}
         <tr>
             <th class="team-name">{{ item.team_num }} - {{ item.team_name }}</th>
-            <td><span class="glyphicon {{ glyphs[item.rob1] }}"></span></td>
-            <td><span class="glyphicon {{ glyphs[item.rob2] }}"></span></td>
-            <td><span class="glyphicon {{ glyphs[item.rob3] }}"></span></td>
-            <td><span class="glyphicon {{ glyphs[item.research] }}"></span></td>
+            {% for st in item[2:] %}
+                <td class="limit">
+                    {% if st.status == PlanningTable.DONE %}
+                        <span class="glyphicon {{ glyphs[st.status] }}"></span>
+                    {% else %}
+                        {{ st.time.strftime('%H:%M') }}
+                    {% end %}
+                </td>
+            {% end %}
         </tr>
         {% end %}
     {% else %}
@@ -78,7 +85,7 @@ $(document).ready(function() {
         }
     }
     var clock = to_minutes($("#clock").text().trim());
-    $("span.limit").each(function(index) {
+    $(".limit").each(function(index) {
         check_if_late($(this), clock);
     });
 });

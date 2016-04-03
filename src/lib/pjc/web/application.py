@@ -61,7 +61,7 @@ class PJCWebApp(tornado.web.Application):
                 (r"/img/(.*)", tornado.web.StaticFileHandler, {"path": os.path.join(self._res_home, 'img')}),
                 (r"/fonts/(.*)", tornado.web.StaticFileHandler, {"path": os.path.join(self._res_home, 'fonts')}),
                 (r"/docs/(.*)", tornado.web.StaticFileHandler, {"path": os.path.join(self._res_home, 'docs')}),
-                (r"/(.*)", tornado.web.StaticFileHandler, {"path": self._res_home})
+                (r"/manifest.json", tornado.web.StaticFileHandler, {"path": os.path.join(self._res_home, 'manifest.json')})
             ]
 
         self._lock = threading.Lock()

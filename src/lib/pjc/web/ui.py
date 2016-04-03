@@ -62,7 +62,7 @@ class UIRequestHandler(AppRequestHandler):
         }
 
 
-class ProgressDisplayHandler(UIRequestHandler):
+class PlanningDisplayHandler(UIRequestHandler):
     """ Shared request handler for displaying the tournament progress report.
 
     Used by TV display (`pjc.web.tv.TVProgress`) and administration (`pjc.web.admin.AdminHome`) pages.
@@ -77,13 +77,7 @@ class ProgressDisplayHandler(UIRequestHandler):
     def template_name(self):
         # depending on the context (TV display or administration application), the template file will be
         # looked for in the associated directory, and thus can be customized to fit the display needs.
-        return "progress"
-
-    # @property
-    # def template_args(self):
-    #     return {
-    #         "application": self.application
-    #     }
+        return "planning"
 
 
 class NextSchedulesDisplayHandler(UIRequestHandler):
@@ -94,12 +88,6 @@ class NextSchedulesDisplayHandler(UIRequestHandler):
         # depending on the context (TV display or administration application), the template file will be
         # looked for in the associated directory, and thus can be customized to fit the display needs.
         return "next_schedules"
-
-    # @property
-    # def template_args(self):
-    #     return {
-    #         "application": self.application
-    #     }
 
 
 class ScoresDisplayHandler(UIRequestHandler):
@@ -113,12 +101,6 @@ class ScoresDisplayHandler(UIRequestHandler):
         # looked for in the associated directory, and thus can be customized to fit the display needs.
         return "scores"
 
-    # @property
-    # def template_args(self):
-    #     return {
-    #         "application": self.application
-    #     }
-
 
 class RankingDisplayHandler(UIRequestHandler):
     """ Shared request handler for displaying the current ranking report.
@@ -130,9 +112,3 @@ class RankingDisplayHandler(UIRequestHandler):
         # depending on the context (TV display or administration application), the template file will be
         # looked for in the associated directory, and thus can be customized to fit the display needs.
         return "ranking"
-
-    # @property
-    # def template_args(self):
-    #     return {
-    #         "application": self.application
-    #     }
