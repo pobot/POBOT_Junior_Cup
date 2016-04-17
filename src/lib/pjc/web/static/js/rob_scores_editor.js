@@ -52,6 +52,18 @@ $(document).ready(function() {
         document.location.href = "/";
     });
 
+    $('.match-duration').dblclick(function(){
+        "use strict";
+        $(this).val("2:30");
+    });
+
+    $('.empty-area').dblclick(function(){
+        "use strict";
+        $(this).val("4");
+    });
+
+    $('.dblclk-default').attr('title', 'Double-clic -> valeur par défaut');
+
     var scroller = $('div.score-editor-scroller');
 
     function resize_scroller() {

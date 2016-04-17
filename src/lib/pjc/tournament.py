@@ -1,13 +1,14 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from datetime import datetime
 
-__author__ = 'eric'
+from datetime import datetime
 
 from operator import itemgetter
 from collections import namedtuple
 import datetime
 import csv
+
+__author__ = 'eric'
+
 
 MATCH_DURATION = 150    # secs
 
@@ -123,6 +124,16 @@ class JuryEvaluationScore(Score):
 
     def evaluate(self):
         return sum(getattr(self, attr) for attr in self.items)
+
+
+class GradeEvaluationScore(Score):
+    items = ('grade',)
+
+    def __init__(self, grade):
+        self.grade = grade
+
+    def evaluate(self):
+        return Grade.bonus_points(self.grade)
 
 
 # Collating structure for scored points and ranking points
@@ -241,7 +252,7 @@ def get_ranking_points(score_points, team_count):
     return result
 
 
-class ScholarLevel(object):
+class Grade(object):
     (
         POST_BAC,
         TERMINALE,
@@ -282,21 +293,21 @@ class ScholarLevel(object):
     ]
 
     @classmethod
-    def bonus_points(cls, level):
-        return level.code - cls.POST_BAC
+    def bonus_points(cls, grade):
+        return grade.code - cls.POST_BAC
 
     @classmethod
-    def is_valid(cls, level):
-        return cls.POST_BAC <= level <= cls.CM1
+    def is_valid(cls, grade):
+        return cls.POST_BAC <= grade <= cls.CM1
 
     @classmethod
-    def encode(cls, level):
-        lvl = level.lower()
+    def encode(cls, grade):
+        lvl = grade.lower()
         for code, accepted_forms in [t for t in enumerate(cls.encoding)][::-1]:
             for option in accepted_forms:
                 if option in lvl:
                     return code
-        raise KeyError('unrecognized level (%s)' % level)
+        raise KeyError('unrecognized grade (%s)' % grade)
 
     @classmethod
     def decode(cls, code):
@@ -409,11 +420,11 @@ class TeamPlanning(object):
 
 class Team(object):
 
-    def __init__(self, num, name, school, level, city, department, present, planning=None):
+    def __init__(self, num, name, school, grade, city, department, present, planning=None):
         self.num = int(num)
         self.name = name
         self.school = school
-        self.level = level if isinstance(level, ScholarLevel) else ScholarLevel(level)
+        self.grade = grade if isinstance(grade, Grade) else Grade(grade)
         self.city = city
         self.department = department
         self.present = present
@@ -421,13 +432,13 @@ class Team(object):
 
     @property
     def bonus(self):
-        return ScholarLevel.bonus_points(self.level)
+        return Grade.bonus_points(self.grade)
 
     def serialize(self):
         return {
             'name': self.name,
             'school': self.school,
-            'level': self.level.serialize(),
+            'grade': self.grade.serialize(),
             'city': self.city,
             'department': self.department,
             'present': self.present,
@@ -437,7 +448,7 @@ class Team(object):
     def as_dict(self):
         return self.serialize().update({
             'num': self.num,
-            'bonus': ScholarLevel.bonus_points(self.level),
+            'bonus': Grade.bonus_points(self.grade),
         })
 
     def __repr__(self):
@@ -447,7 +458,7 @@ class Team(object):
         return self.num.__cmp__(other.num)
 
 
-TeamCSVData = namedtuple('TeamCSVData', 'num name level school city dept')
+TeamCSVData = namedtuple('TeamCSVData', 'num name grade school city dept')
 
 
 class DuplicatedTeam(Exception):
@@ -468,6 +479,8 @@ class Tournament(object):
             else []
         self._research_evaluations = Round(ResearchEvaluationScore)
         self._jury_evaluations = Round(JuryEvaluationScore)
+        self._bonus = Round(GradeEvaluationScore)
+
         self._planning = [
             datetime.time(15, 00),  # time limit for round 1 matches
             datetime.time(16, 00),  # time limit for round 2 matches
@@ -496,12 +509,12 @@ class Tournament(object):
         fp.seek(0)
         rdr = csv.reader(fp)
         for team_data in (TeamCSVData(*f) for f in rdr):
-            level = ScholarLevel(team_data.level)
+            grade = Grade(team_data.grade)
             self.add_team(Team(
                 team_data.num,
                 name=team_data.name,
                 school=team_data.school,
-                level=level,
+                grade=grade,
                 city=team_data.city,
                 department=team_data.dept,
                 present=False
@@ -581,12 +594,16 @@ class Tournament(object):
         :param Team team: the new team
         :returns int: the new teams count (is also the number given to the added team)
         :raises DuplicatedTeam: if team already present
-        :raises ValueError: if scholar level is invalid
+        :raises ValueError: if scholar grade is invalid
         """
         if team.num in self._teams:
             raise DuplicatedTeam(team)
 
         self._teams[team.num] = team
+
+        # add the fake score reflecting the team grade
+        self._bonus.add_team_score(team.num, GradeEvaluationScore(team.grade))
+
         return self.team_count(present_only=False)
 
     def deserialize_teams(self, dct):
@@ -597,7 +614,7 @@ class Tournament(object):
                 num,
                 name=details['name'],
                 school=details['school'],
-                level=details['level'],
+                grade=details['grade'],
                 city=details['city'],
                 department=details['department'],
                 present=details['present'],
@@ -760,7 +777,14 @@ class Tournament(object):
     def get_teams_bonus(self):
         """ Returns the list of teams bonus.
         """
-        return [ScholarLevel.bonus_points(team.level) for team in self._teams]
+        return [Grade.bonus_points(team.grade) for team in self._teams.values()]
+
+    def get_team_bonus_results(self):
+        """ Returns the team grade bonus as a round result.
+
+        It is returned as a dictionary of RoundScorePoints, keyed by the team number
+        """
+        return self._bonus.get_results(self.team_count(present_only=False))
 
     CompiledScore = namedtuple('CompiledScore', 'rob1 rob2 rob3 research jury')
 
@@ -831,6 +855,7 @@ class Tournament(object):
         robotics = self.get_robotics_results()
         research = self.get_research_evaluation_results()
         jury = self.get_team_evaluation_results()
+        bonus = self.get_team_bonus_results()
 
         not_avail = RoundScorePoints(0, 0)
 
@@ -839,8 +864,10 @@ class Tournament(object):
              robotics.get(team_num, not_avail).rank +
              research.get(team_num, not_avail).rank +
              jury.get(team_num, not_avail).rank +
-             ScholarLevel.bonus_points(team.level)  #TODO should be processed like other items to keep a constant weight whatever is the team count
-            )
+             # Grade.bonus_points(team.grade)
+             # now processed like other items to keep a constant weight whatever is the team count
+             bonus.get(team_num, not_avail).rank
+             )
             for team_num, team in self._teams.iteritems() if team_num in competing_teams
         ], self.team_count(present_only=True))
 
@@ -864,7 +891,7 @@ class Tournament(object):
     def serialize(self):
         d = dict()
 
-        d['teams'] = dict([(team.num, team.serialize())for team in self._teams.values()])
+        d['teams'] = dict([(team.num, team.serialize()) for team in self._teams.values()])
         d['planning'] = [t.strftime('%H:%M') for t in self._planning]
         d['start_time'] = self._start_time.strftime('%H:%M')
         d['robotics_rounds'] = [r.serialize() for r in self._robotics_rounds]

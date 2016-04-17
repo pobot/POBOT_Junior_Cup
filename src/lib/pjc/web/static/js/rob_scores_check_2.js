@@ -1,19 +1,20 @@
 function check_row(team_num, row) {
     var total_time = $("#total_time_" + team_num).val();
-    var alignments = parseInt($("#alignments_" + team_num).val());
-    var dockings = parseInt($("#dockings_" + team_num).val());
-    var hits = parseInt($("#hits_" + team_num).val());
-    var channels_ok = parseInt($("#channels_ok_" + team_num).val());
-    var channels_wrong = parseInt($("#channels_wrong_" + team_num).val());
+    var installed = parseInt($("#installed_" + team_num).val(), 10);
+    var empty_areas = parseInt($("#empty_areas_" + team_num).val(), 10);
+    var homogeneous_areas = parseInt($("#homogeneous_areas_" + team_num).val(), 10);
 
-    if ((total_time == '00:00') &&
-        (alignments != 0 || dockings != 0 || hits != 0 || channels_ok != 0 || channels_wrong != 0)) {
-       return "Temps total manquant"
+    if ((total_time === '0:00') &&
+        (installed !== 0 || empty_areas !== 0 || homogeneous_areas !== 0)) {
+       return "Temps total manquant";
     }
 
-    var total_channels = channels_ok + channels_wrong;
-    if (total_channels > 2) {
-        return $.format("Erreur dans les décomptes de chenaux ({0})", total_channels);
+    if (empty_areas + homogeneous_areas > 4) {
+        return "Décomptes des zones non cohérents";
+    }
+
+    if (empty_areas + installed < 4) {
+        return "Décompte des zones vides non cohérent";
     }
 
     return null;

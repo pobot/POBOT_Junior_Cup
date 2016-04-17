@@ -14,63 +14,70 @@ def secs(minutes, seconds):
     return minutes * 60 + seconds
 
 
+MAX_SECS = secs(2, 30)
+
+
+def secs_saved(score):
+    return MAX_SECS - score.total_time
+
+
 class TestRound1Score(TestCase):
     def test_evaluate(self):
-        score = Round1Score(secs(2, 10), 8, 2, 0)
-        self.assertEqual(score.evaluate(), 30)
-        score = Round1Score(secs(2, 20), 8, 2, 0)
-        self.assertEqual(score.evaluate(), 20)
-        score = Round1Score(secs(2, 30), 6, 1, 0)
-        self.assertEqual(score.evaluate(), 7)
-        score = Round1Score(secs(1, 40), 8, 2, 0)
-        self.assertEqual(score.evaluate(), 60)
-        score = Round1Score(secs(2, 30), 8, 2, 0)
-        self.assertEqual(score.evaluate(), 10)
-        score = Round1Score(secs(2, 30), 8, 1, 0)
-        self.assertEqual(score.evaluate(), 9)
+        score = Round1Score(secs(2, 10), 8)
+        self.assertEqual(score.evaluate(), secs_saved(score) + 8)
+        score = Round1Score(secs(2, 20), 8)
+        self.assertEqual(score.evaluate(), secs_saved(score) + 8)
+        score = Round1Score(secs(2, 30), 6)
+        self.assertEqual(score.evaluate(), 6)
+        score = Round1Score(secs(1, 40), 8)
+        self.assertEqual(score.evaluate(), secs_saved(score) + 8)
+        score = Round1Score(secs(2, 30), 8)
+        self.assertEqual(score.evaluate(), secs_saved(score) + 8)
+        score = Round1Score(secs(2, 30), 8)
+        self.assertEqual(score.evaluate(), secs_saved(score) + 8)
 
 
 class TestRound2Score(TestCase):
     def test_evaluate(self):
-        score = Round2Score(secs(2, 10), 8, 2, 0, 2, 0)
-        self.assertEqual(score.evaluate(), 40)
-        score = Round2Score(secs(2, 20), 8, 2, 0, 2, 0)
-        self.assertEqual(score.evaluate(), 30)
-        score = Round2Score(secs(2, 30), 6, 1, 0, 1, 0)
-        self.assertEqual(score.evaluate(), 12)
-        score = Round2Score(secs(1, 00), 8, 2, 0, 0, 2)
-        self.assertEqual(score.evaluate(), 0)
-        score = Round2Score(secs(2, 10), 8, 2, 0, 1, 1)
-        self.assertEqual(score.evaluate(), 10)
-        score = Round2Score(secs(2, 20), 8, 2, 1, 2, 0)
-        self.assertEqual(score.evaluate(), 19)
+        score = Round2Score(secs(2, 10), 8, 0, 3)
+        self.assertEqual(score.evaluate(), secs_saved(score) + 8 + 3)
+        score = Round2Score(secs(2, 20), 8, 2, 0)
+        self.assertEqual(score.evaluate(), 8 - 2)
+        score = Round2Score(secs(2, 30), 6, 1, 0)
+        self.assertEqual(score.evaluate(), 6 - 1)
+        score = Round2Score(secs(1, 00), 8, 2, 0)
+        self.assertEqual(score.evaluate(), 8 - 2)
+        score = Round2Score(secs(2, 10), 8, 2, 0)
+        self.assertEqual(score.evaluate(), 8 - 2)
+        score = Round2Score(secs(2, 20), 8, 2, 1)
+        self.assertEqual(score.evaluate(), 8 - 2 + 1)
 
 
 class TestRound3Score(TestCase):
     def test_evaluate(self):
-        score = Round3Score(secs(2, 10), 6, 0)
-        self.assertEqual(score.evaluate(), 26)
-        score = Round3Score(secs(1, 40), 5, 1)
-        self.assertEqual(score.evaluate(), 4)
-        score = Round3Score(secs(2, 20), 4, 0)
-        self.assertEqual(score.evaluate(), 4)
-        score = Round3Score(secs(1, 40), 6, 0)
-        self.assertEqual(score.evaluate(), 56)
-        score = Round3Score(secs(2, 29), 6, 0)
-        self.assertEqual(score.evaluate(), 7)
-        score = Round3Score(secs(2, 00), 2, 0)
-        self.assertEqual(score.evaluate(), 2)
+        score = Round3Score(secs(2, 10), Round3Score.FULLY_INSIDE, 0)
+        self.assertEqual(score.evaluate(), secs_saved(score) + 10)
+        score = Round3Score(secs(1, 40), Round3Score.FULLY_INSIDE, 1)
+        self.assertEqual(score.evaluate(), 10 - 1)
+        score = Round3Score(secs(2, 20), Round3Score.OUTSIDE, 0)
+        self.assertEqual(score.evaluate(), 0)
+        score = Round3Score(secs(1, 40), Round3Score.FULLY_INSIDE, 0)
+        self.assertEqual(score.evaluate(), secs_saved(score) + 10)
+        score = Round3Score(secs(2, 29), Round3Score.PARTLY_INSIDE, 0)
+        self.assertEqual(score.evaluate(), 5)
+        score = Round3Score(secs(2, 00), Round3Score.FULLY_INSIDE, 0)
+        self.assertEqual(score.evaluate(), secs_saved(score) + 10)
 
 
 class TestRound(TestCase):
     SCORES = [
-        Round1Score(secs(1, 30), 8, 2, 0),
-        Round1Score(secs(1, 40), 8, 2, 0),
-        Round1Score(secs(1, 40), 8, 2, 0),
-        Round1Score(secs(2, 20), 6, 1, 0),
-        Round1Score(secs(1, 0), 8, 2, 0),
-        Round1Score(secs(2, 30), 6, 1, 0),
-        Round1Score(secs(2, 0), 8, 2, 1)
+        Round1Score(secs(1, 30), 8),
+        Round1Score(secs(1, 40), 8),
+        Round1Score(secs(1, 40), 8),
+        Round1Score(secs(2, 20), 6),
+        Round1Score(secs(1, 0), 8),
+        Round1Score(secs(2, 30), 6),
+        Round1Score(secs(2, 0), 8)
     ]
 
     def setUp(self):
@@ -89,33 +96,35 @@ class TestRound(TestCase):
 
 
 class TestTournament(TestCase):
+    DUMMY_PLANNING = TeamPlanning([datetime.time(14), datetime.time(15), datetime.time(16), datetime.time(17)])
+
     TEAMS = [
-        Team('Team 1', ScholarLevel.TERMINALE),
-        Team('Team 2', ScholarLevel.TERMINALE),
-        Team('Team 3', ScholarLevel.TERMINALE),
-        Team('Team 4', ScholarLevel.SECONDE),
-        Team('Team 5', ScholarLevel.TERMINALE)
+        Team(1, 'Team 1', 'School 1', Grade.TERMINALE, 'Grasse', 6, True, planning=DUMMY_PLANNING),
+        Team(2, 'Team 2', 'School 2', Grade.QUATRIEME, 'Le Cannet', 6, True, planning=DUMMY_PLANNING),
+        Team(3, 'Team 3', 'School 3', Grade.SIXIEME, 'Nice', 6, True, planning=DUMMY_PLANNING),
+        Team(4, 'Team 4', 'School 4', Grade.SECONDE, 'Hasparren', 64, True, planning=DUMMY_PLANNING),
+        Team(5, 'Team 5', 'School 5', Grade.TROISIEME, 'Valbonne', 6, True, planning=DUMMY_PLANNING)
     ]
 
     SCORES_ROBOTICS = [
         [
-            (1, Round1Score(secs(1, 30), 8, 2, 0)),
-            (2, Round1Score(secs(1, 40), 8, 2, 0)),
-            (3, Round1Score(secs(2, 20), 6, 2, 1)),
-            (4, Round1Score(secs(1, 00), 8, 2, 0)),
-            (5, Round1Score(secs(2, 00), 8, 2, 0))
+            (1, Round1Score(secs(1, 30), 8)),
+            (2, Round1Score(secs(1, 40), 8)),
+            (3, Round1Score(secs(2, 20), 6)),
+            (4, Round1Score(secs(1, 00), 8)),
+            (5, Round1Score(secs(2, 00), 8))
         ],
         [
-            (1, Round2Score(secs(1, 30), 8, 2, 0, 2, 0)),
-            (2, Round2Score(secs(1, 40), 8, 2, 0, 2, 0)),
-            (3, Round2Score(secs(2, 20), 6, 1, 0, 1, 0)),
-            (4, Round2Score(secs(1, 00), 8, 2, 0, 0, 2)),
-            (5, Round2Score(secs(2 ,30), 8, 2, 0, 1, 1))
+            (1, Round2Score(secs(1, 30), 8, 2, 0)),
+            (2, Round2Score(secs(1, 40), 8, 2, 0)),
+            (3, Round2Score(secs(2, 20), 6, 1, 0)),
+            (4, Round2Score(secs(1, 00), 8, 2, 0)),
+            (5, Round2Score(secs(2 ,30), 8, 2, 0))
         ],
         [
-            (1, Round3Score(secs(1, 30), 6, 0)),
-            (2, Round3Score(secs(1, 40), 5, 1)),
-            (4, Round3Score(secs(2, 20), 4, 0))
+            (1, Round3Score(secs(1, 30), Round3Score.FULLY_INSIDE, 0)),
+            (2, Round3Score(secs(1, 40), Round3Score.PARTLY_INSIDE, 1)),
+            (4, Round3Score(secs(2, 20), Round3Score.OUTSIDE, 0))
         ]
     ]
 
@@ -162,22 +171,26 @@ class TestTournament(TestCase):
         self.assertTupleEqual(status.research, (True, False, True, True, True))
 
     def test_get_global_result(self):
+        present_temas_count = self._tournament.team_count(present_only=True)
+
         print('* robotics rounds teams results : ')
         for i in xrange(1, 4):
-            print("%d : %s" % (i, self._tournament.get_robotics_round(i).get_results(self._tournament.team_count(present_only=True))))
+            print("%d : %s" % (
+                i, self._tournament.get_robotics_round(i).get_results(present_temas_count)
+            ))
         print('* robotics consolidated teams results :')
         print(self._tournament.get_robotics_results())
         print('* research teams results : ')
-        print(self._tournament.research_evaluations.get_results(self._tournament.team_count(present_only=True)))
+        print(self._tournament.research_evaluations.get_results(present_temas_count))
         print('* jury evaluation results : ')
-        print(self._tournament.jury_evaluations.get_results(self._tournament.team_count(present_only=True)))
+        print(self._tournament.jury_evaluations.get_results(present_temas_count))
         print('* teams bonus : ')
-        print(self._tournament.get_teams_bonus())
+        print(self._tournament._bonus.get_results(present_temas_count))
 
         res = self._tournament.get_final_ranking()
         print('* tournament final ranking :')
         print(res)
-        self.assertEqual(res, [(1, [1]), (2, [4, 5]), (4, [3]), (5, [2])])
+        self.assertEqual(res, [(1, [1]), (2, [5]), (3, [3]), (4, [4])])
 
     def test_json_persistence(self):
         with file('/tmp/tournament.json', 'wt') as fp:
@@ -189,7 +202,7 @@ class TestTournament(TestCase):
         t.deserialize(d)
 
         self.assertEqual(t.planning, self._tournament.planning)
-        self.assertEqual(t.teams, self._tournament.teams)
+        self.assertEqual(t.teams(), self._tournament.teams())
 
         s1 = t.research_evaluations.scores
         s2 = self._tournament.research_evaluations.scores
