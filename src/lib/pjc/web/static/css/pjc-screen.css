@@ -68,7 +68,7 @@ label.text-center {
 }
 
 label.control-label.col-header {
-    text-align: center !important;
+    text-align: left !important;
     width: 100%;
 }
 

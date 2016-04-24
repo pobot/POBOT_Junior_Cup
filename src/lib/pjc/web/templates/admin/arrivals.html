@@ -8,6 +8,15 @@
 </script>
 {% end %}
 
+{% block local_css %}
+<style type="text/css">
+    .team-school {
+        color: #7a8288;
+        font-weight: normal;
+    }
+</style>
+{% end %}
+
 {% block page_content %}
 
 {% module AdminPageTitle("Pointage des équipes") %}
@@ -16,10 +25,13 @@
     <div id="scroller" class="col-sm-8 col-md-6 col-sm-offset-2 col-md-offset-3">
         <table class="table table-striped translucent arrivals">
             {% set glyphs = ['glyphicon-remove text-danger', 'glyphicon-ok text-success'] %}
-            {% for num, name, arrived in arrivals %}
+            {% for num, name, school, arrived in arrivals %}
             <tr>
-                <th class="text-right col-sm-6">{{ num }} - {{ name }}</th>
-                <td class="col-sm-6 text-center">
+                <th class="col-sm-10">
+                    {{ num }} - {{ name }}
+                    <span class="team-school">({{school}})</span>
+                </th>
+                <td class="col-sm-2 text-center">
                     <span class="glyphicon {{ glyphs[arrived] }}"></span>
                 </td>
             </tr>

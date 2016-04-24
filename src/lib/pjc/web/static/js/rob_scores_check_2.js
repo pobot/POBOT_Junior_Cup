@@ -9,12 +9,20 @@ function check_row(team_num, row) {
        return "Temps total manquant";
     }
 
-    if (empty_areas + homogeneous_areas > 4) {
-        return "Décomptes des zones non cohérents";
-    }
+    if (total_time !== '0:00') {
+        if (empty_areas + homogeneous_areas > 4) {
+            return "Décomptes des zones non cohérents";
+        }
 
-    if (empty_areas + installed < 4) {
-        return "Décompte des zones vides non cohérent";
+        if (empty_areas + installed < 4) {
+            return "Décompte des zones vides non cohérent";
+        }
+
+        if (homogeneous_areas > 0) {
+            if (installed < homogeneous_areas + 4 - empty_areas) {
+                return "Décompte des zones homogènes et vides non cohérent";
+            }
+        }
     }
 
     return null;

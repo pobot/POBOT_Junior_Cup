@@ -63,7 +63,7 @@ class AdminArrivalsReport(AdminUIHandler):
         arrivals = []
         for team_num in self.tournament.team_nums():
             team = self.tournament.get_team(team_num)
-            arrivals.append((team_num, team.name, team.present))
+            arrivals.append((team_num, team.name, team.school, team.present))
         return {
             "arrivals": arrivals
         }

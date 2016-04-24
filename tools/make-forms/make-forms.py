@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-__author__ = 'Eric Pascual'
-
 import argparse
 import os
 import datetime
@@ -16,6 +14,8 @@ from reportlab.lib.enums import *
 from reportlab.lib import colors
 
 from pjc.tournament import Tournament, TeamPlanning
+
+__author__ = 'Eric Pascual'
 
 default_table_style = [
     ('FONTNAME', (0, 0), (-1, -1), 'Helvetica-Bold'),
@@ -73,7 +73,7 @@ class PageHeader(object):
         return [
             Table(
                 [
-                    [logo_left, 'POBOT Junior Cup 2015', logo_right],
+                    [logo_left, 'POBOT Junior Cup 2016', logo_right],
                     ['', self.title, '']
                 ],
                 colWidths=[self.LOGO_WIDTH, self.text_width - 2 * self.LOGO_WIDTH, self.LOGO_WIDTH],
@@ -116,7 +116,7 @@ class TeamHeader(object):
         return [
             Paragraph("%s - %s" % (self.team.num, self.team.name), self.team_name_style),
             Paragraph(
-                "%s - %s" % (self.team.school or '<i>équipe open</i>', self.team.level.orig),
+                "%s - %s" % (self.team.school or '<i>équipe open</i>', self.team.grade.orig),
                 self.team_school_style
             ),
             Spacer(0, 0.5 * inch)
@@ -137,66 +137,21 @@ def generate_individual_sheet(title, tournament, body_generator):
 
 
 def generate_match_sheets(tournament, **kwArgs):
-    match_comments = [
-        """
-            Le match se termine dès que <b>3 tours complets</b> sont effectués ou bien au bout de 2"30.
-            <br/>
-            Pour un sans-faute le nombre de quadrants valides sera de 12.
-        """,
-        """
-            Le match est arrêté au bout de 2"30 ou bien <b>dès que le passager est perdu</b>.
-            <br/>
-            La comptabilisation est sinon identique à celle de l'épreuve 1.
-        """,
-        """
-            Le match est arrêté au bout de 2"30 ou bien <b>dès que le robot perd la ligne</b>.
-            <br/>
-            Le quai d'embarquement n'est regarni que s'il a été complètement vidé de ses passagers. Les
-            passagers déplacés seront remis sur l'emplacement le plus proche.
-            <br/>
-            Un passager n'est comptabilisé que s'il est <b>entièrement contenu</b> dans la zone de dépose,
-            c'est à dire si rien de dépasse de la bordure externe du trait de délimitation.
-        """
-    ]
-
     def generate_body(story, team):
-        for match_num, match_name in enumerate(('vitesse', 'confort'), start=1):
-            story.append(Table(
-                [
-                    [
-                        [
-                            Paragraph("Epreuve %d : %s" % (match_num, match_name), style=match_title),
-                            Paragraph(match_comments[match_num - 1], style=match_comment)
-                        ]
-                    ],
-                    ["Arbitre", ''],
-                    ["Temps total", '', "Quadrants valides", '']
-                ],
-                colWidths=[1.67 * inch] * 4,
-                style=default_table_style + [
-                    ('ALIGN', (0, 0), (-1, -1), 'RIGHT'),
-                    ('ALIGN', (0, 0), (0, 0), 'CENTER'),
-                    ('SPAN', (0, 0), (3, 0)),
-                    ('SPAN', (0, 1), (1, 1)),
-                    ('SPAN', (2, 1), (3, 1)),
-                    ('BACKGROUND', (0, 0), (3, 0), cell_bkgnd_color),
-                    ('BACKGROUND', (0, 1), (1, 1), cell_bkgnd_color),
-                    ('BACKGROUND', (0, 2), (0, 2), cell_bkgnd_color),
-                    ('BACKGROUND', (2, 2), (2, 2), cell_bkgnd_color),
-                ]
-            ))
-            story.append(tables_spacer)
-
         story.append(Table(
             [
                 [
                     [
-                        Paragraph("Epreuve 3 : transport de passagers", style=match_title),
-                        Paragraph(match_comments[2], style=match_comment)
+                        Paragraph("Epreuve 1 : Récupération de nodules", style=match_title),
+                        Paragraph("""
+                            Le match se termine dès que <b>les 8 éléments</b> sont remontés ou bien au bout de 2'30.
+                            <br/>
+                            Un sans-faute correspond à 8 éléments valides.
+                        """, style=match_comment)
                     ]
                 ],
                 ["Arbitre", ''],
-                ["Total passagers", '', '', '']
+                ["Temps total", '', "Nodules OK", '']
             ],
             colWidths=[1.67 * inch] * 4,
             style=default_table_style + [
@@ -205,11 +160,80 @@ def generate_match_sheets(tournament, **kwArgs):
                 ('SPAN', (0, 0), (3, 0)),
                 ('SPAN', (0, 1), (1, 1)),
                 ('SPAN', (2, 1), (3, 1)),
-                ('SPAN', (2, 2), (3, 2)),
                 ('BACKGROUND', (0, 0), (3, 0), cell_bkgnd_color),
                 ('BACKGROUND', (0, 1), (1, 1), cell_bkgnd_color),
                 ('BACKGROUND', (0, 2), (0, 2), cell_bkgnd_color),
-                ('BACKGROUND', (2, 2), (3, 2), cell_bkgnd_color),
+                ('BACKGROUND', (2, 2), (2, 2), cell_bkgnd_color),
+            ]
+        ))
+        story.append(tables_spacer)
+
+        story.append(Table(
+            [
+                [
+                    [
+                        Paragraph("Epreuve 2 : Installation d'hydrogénérateurs", style=match_title),
+                        Paragraph("""
+                            Le match se termine dès que <b>les 8 éléments</b> sont déposés ou bien au bout de 2'30.
+                            <br/>
+                            Un sans-faute correspond à 8 éléments valides, aucune case vide et 3 paires de couleur.
+                        """, style=match_comment)
+                    ]
+                ],
+                ["Arbitre", ''],
+                ["Temps total", '', "Générateurs OK", ''],
+                ["Cases vides", '', "Paires de couleur", '']
+            ],
+            colWidths=[1.67 * inch] * 4,
+            style=default_table_style + [
+                ('ALIGN', (0, 0), (-1, -1), 'RIGHT'),
+                ('ALIGN', (0, 0), (0, 0), 'CENTER'),
+                ('SPAN', (0, 0), (3, 0)),
+                ('SPAN', (0, 1), (1, 1)),
+                ('SPAN', (2, 1), (3, 1)),
+                ('BACKGROUND', (0, 0), (3, 0), cell_bkgnd_color),
+                ('BACKGROUND', (0, 1), (1, 1), cell_bkgnd_color),
+                ('BACKGROUND', (0, 2), (0, 2), cell_bkgnd_color),
+                ('BACKGROUND', (2, 2), (2, 2), cell_bkgnd_color),
+                ('BACKGROUND', (0, 3), (0, 3), cell_bkgnd_color),
+                ('BACKGROUND', (2, 3), (2, 3), cell_bkgnd_color),
+            ]
+        ))
+        story.append(tables_spacer)
+
+        story.append(Table(
+            [
+                [
+                    [
+                        Paragraph("Epreuve 3 : Réparation du câble", style=match_title),
+                        Paragraph("""
+                            Le match se termine dès que <b>le câble est réparé correctement</b> (tous les éléments
+                            totalement sur la ligne) ou bien au bout de 2'30.
+                            <br/>
+                            Les équipes peuvent refaire plusieurs tentatives en cas d'essai non réussi, à concurrence de
+                            2'30 de jeu ou bien 10' hors tout.
+                        """, style=match_comment)
+                    ]
+                ],
+                ["Arbitre", ''],
+                ["Temps total", '', "Validité raccord", 'oui - partielle - non'],
+                ["Eléments déplacés", '', '']
+            ],
+            colWidths=[1.67 * inch] * 4,
+            style=default_table_style + [
+                ('ALIGN', (0, 0), (-1, -1), 'RIGHT'),
+                ('ALIGN', (0, 0), (0, 0), 'CENTER'),
+                ('ALIGN', (3, 2), (3, 2), 'CENTER'),
+                ('SPAN', (0, 0), (3, 0)),
+                ('SPAN', (0, 1), (1, 1)),
+                ('SPAN', (2, 1), (3, 1)),
+                ('SPAN', (2, 3), (3, 3)),
+                ('BACKGROUND', (0, 0), (3, 0), cell_bkgnd_color),
+                ('BACKGROUND', (0, 1), (1, 1), cell_bkgnd_color),
+                ('BACKGROUND', (0, 2), (0, 2), cell_bkgnd_color),
+                ('BACKGROUND', (2, 2), (2, 2), cell_bkgnd_color),
+                ('BACKGROUND', (0, 3), (0, 3), cell_bkgnd_color),
+                ('BACKGROUND', (2, 3), (3, 3), cell_bkgnd_color),
             ]
         ))
 
@@ -414,7 +438,7 @@ def generate_stand_labels(tournament, **kwArgs):
             Paragraph(team.name, team_name_style),
             Spacer(0, 1.5 * inch),
             Paragraph(team.school or '<i>Equipe open</i>', team_detail_style),
-            Paragraph(team.level.orig, team_detail_style),
+            Paragraph(team.grade.orig, team_detail_style),
             Spacer(0, 0.3 * inch),
             Paragraph("%s (%02d)" % (team.city, int(team.department)), team_detail_style),
             PageBreak()
@@ -558,6 +582,37 @@ def generate_planning(tournament, doc=None):
         ]
 
 
+def generate_signs(tournament, doc=None):
+    big_letters = ParagraphStyle(
+        'big_letters',
+        fontSize=120,
+        alignment=TA_CENTER,
+    )
+
+    story = []
+
+    ph_story = PageHeader(page_size=doc.pagesize).get_story()
+
+    for table_num in range(1, 4):
+        for side in range(4):
+            story.extend(ph_story)
+            story.extend([
+                Spacer(0, 1 * inch),
+                Paragraph("Table %d" % table_num, big_letters),
+                PageBreak()
+            ])
+
+    for jury_num in range(1, 4):
+        story.extend(ph_story)
+        story.extend([
+            Spacer(0, 1 * inch),
+            Paragraph("Jury %d" % jury_num, big_letters),
+            PageBreak()
+        ])
+
+    return story
+
+
 _generators = {
     'm': (generate_match_sheets, 'match sheets', 'match_sheets', portrait(A4)),
     'j': (generate_jury_sheets, 'jury sheets', 'jury_sheets', portrait(A4)),
@@ -565,6 +620,7 @@ _generators = {
     't': (generate_time_tables, 'time tables', 'time_tables', portrait(A4)),
     's': (generate_stand_labels, 'stand labels', 'stand_labels', portrait(A4)),
     'p': (generate_planning, 'planning', 'planning', landscape(A4)),
+    'x': (generate_signs, 'signs', 'signs', landscape(A4)),
 }
 
 
@@ -622,6 +678,9 @@ if __name__ == '__main__':
                 - (j) individual jury sheets for the presentation evaluations
                 - (a) individual approval sheets
                 - (t) individual time tables
+                - (p) global planning
+                - (s) stand labels
+                - (x) signs for tables and jury rooms
         """),
         formatter_class=argparse.RawTextHelpFormatter
     )

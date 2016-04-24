@@ -117,10 +117,13 @@ class PlanningTable(UIModuleBase):
         progress = []
         for team in tournament.teams(present_only=True):
             planning_times = team.planning.times
-            robotics = [self.StatusItem(
-                self.DONE if status else self.LATE if current_time > limit else self.NOT_DONE,
-                limit
-            ) for status, limit in zip(status_rob[team.num-1], planning_times[:3])]
+            try:
+                robotics = [self.StatusItem(
+                    self.DONE if status else self.LATE if current_time > limit else self.NOT_DONE,
+                    limit
+                ) for status, limit in zip(status_rob[team.num-1], planning_times[:3])]
+            except IndexError:
+                raise
 
             status = status_research[team.num-1]
             limit = planning_times[-1]

@@ -222,6 +222,14 @@ class Round(object):
         return dict([(team_num, score.serialize()) for team_num, score in self._scores.iteritems()])
 
 
+class GradePseudoRound(Round):
+    """ This pseudo-round is used to benefit from the same ranking-to-points conversion
+    mechanism for grade bonuses as for other rounds.
+    """
+    def __init__(self):
+        super(GradePseudoRound, self).__init__(score_type=GradeEvaluationScore)
+
+
 def get_ranking_points(score_points, team_count):
     """ Returns the ranking points corresponding to a set of score points.
 
@@ -232,6 +240,7 @@ def get_ranking_points(score_points, team_count):
 
      :param list score_points: a list of pairs, which first item is the team number and the second one the points scored
      for the related round
+     :param int team_count: the count of teams for ranking points computation
 
      :returns list; a list of pairs containing the team number and the ranking points, the best competitor being in
      first position
@@ -291,6 +300,10 @@ class Grade(object):
         ('cm2',),
         ('cm1',)
     ]
+
+    @classmethod
+    def max_value(cls):
+        return len(cls.labels)
 
     @classmethod
     def bonus_points(cls, grade):
@@ -471,6 +484,11 @@ class Tournament(object):
     """
     ITEMS_DURATION = (10, 10, 10, 30)
 
+    #: relative weights of the various parts of the tournament
+    WEIGHT_ROBOTICS = WEIGHT_RESEARCH = 3
+    WEIGHT_JURY = 0     # no more used
+    WEIGHT_BONUS = 1
+
     def __init__(self, robotics_score_types=None):
         self._robotics_score_types = robotics_score_types
         self._teams = {}
@@ -479,7 +497,7 @@ class Tournament(object):
             else []
         self._research_evaluations = Round(ResearchEvaluationScore)
         self._jury_evaluations = Round(JuryEvaluationScore)
-        self._bonus = Round(GradeEvaluationScore)
+        self._bonus = GradePseudoRound()
 
         self._planning = [
             datetime.time(15, 00),  # time limit for round 1 matches
@@ -509,6 +527,13 @@ class Tournament(object):
         fp.seek(0)
         rdr = csv.reader(fp)
         for team_data in (TeamCSVData(*f) for f in rdr):
+            # check first if we are not one the header line by analysing the type
+            # of what is expected to be the team number
+            try:
+                int(team_data.num)
+            except ValueError:
+                continue
+
             grade = Grade(team_data.grade)
             self.add_team(Team(
                 team_data.num,
@@ -745,7 +770,7 @@ class Tournament(object):
          It is returned as a dictionary of RoundScorePoints, keyed by the team number
         """
         total_points = {}
-        teams_count = self.team_count(present_only=False)
+        teams_count = self.team_count(present_only=True)
         for _round in self._robotics_rounds:
             _res = _round.get_ranking_points(teams_count)
             for team, points in _res:
@@ -757,7 +782,7 @@ class Tournament(object):
         ranking_points = dict(get_ranking_points(total_points.items(), teams_count))
         return dict([
             (team_num, RoundScorePoints(total_points.get(team_num, 0), ranking_points.get(team_num, 0)))
-            for team_num in self.team_nums(present_only=False)
+            for team_num in self.team_nums(present_only=True)
         ])
 
     def get_research_evaluation_results(self):
@@ -765,14 +790,14 @@ class Tournament(object):
 
         It is returned as a dictionary of RoundScorePoints, keyed by the team number
         """
-        return self._research_evaluations.get_results(self.team_count(present_only=False))
+        return self._research_evaluations.get_results(self.team_count(present_only=True))
 
     def get_team_evaluation_results(self):
         """ Returns the team overall evaluation made by the jury.
 
         It is returned as a dictionary of RoundScorePoints, keyed by the team number
         """
-        return self._jury_evaluations.get_results(self.team_count(present_only=False))
+        return self._jury_evaluations.get_results(self.team_count(present_only=True))
 
     def get_teams_bonus(self):
         """ Returns the list of teams bonus.
@@ -784,7 +809,7 @@ class Tournament(object):
 
         It is returned as a dictionary of RoundScorePoints, keyed by the team number
         """
-        return self._bonus.get_results(self.team_count(present_only=False))
+        return self._bonus.get_results(self.team_count(present_only=True))
 
     CompiledScore = namedtuple('CompiledScore', 'rob1 rob2 rob3 research jury')
 
@@ -861,12 +886,10 @@ class Tournament(object):
 
         global_ranking = get_ranking_points([
             (team_num,
-             robotics.get(team_num, not_avail).rank +
-             research.get(team_num, not_avail).rank +
-             jury.get(team_num, not_avail).rank +
-             # Grade.bonus_points(team.grade)
-             # now processed like other items to keep a constant weight whatever is the team count
-             bonus.get(team_num, not_avail).rank
+             robotics.get(team_num, not_avail).rank * self.WEIGHT_ROBOTICS +
+             research.get(team_num, not_avail).rank * self.WEIGHT_RESEARCH +
+             jury.get(team_num, not_avail).rank * self.WEIGHT_JURY +
+             bonus.get(team_num, not_avail).rank * self.WEIGHT_BONUS
              )
             for team_num, team in self._teams.iteritems() if team_num in competing_teams
         ], self.team_count(present_only=True))

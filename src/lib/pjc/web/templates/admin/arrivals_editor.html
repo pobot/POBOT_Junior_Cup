@@ -15,6 +15,10 @@
     span.team-name {
         padding-left: 20px;
     }
+
+    span.team-school{
+        color: #7a8288;
+    }
 </style>
 {% end %}
 
@@ -35,14 +39,17 @@
                     <div class="row list-header">Equipe arrivée ?</div>
                 </div>
                 <div class="form-group arrivals-list">
-                {% for num, name, arrived in arrivals %}
+                {% for num, name, school, arrived in arrivals %}
                     <div id="team-row_{{ num }}" class="row team-row">
-                        <div class="col-sm-12">
-                            <span class="input-group-addon" style="text-align: left">
+                        <div class="input-group-addon" style="text-align: left">
+                            <div class="col-sm-6" >
                                 <input type="checkbox" id="arrived_{{num}}" name="arrived_{{num}}"
                                         {{ "checked" if arrived else "" }}/>
-                            <span class="team-name">{{ num }} - {{ name }}</span>
-                            </span>
+                                <span class="team-name">{{ num }} - {{ name }}</span>
+                            </div>
+                            <div class="col-sm-6" style="text-align: right">
+                                <span class="team-school">{{ school }}</span>
+                            </div>
                         </div>
                     </div>
                 {% end %}

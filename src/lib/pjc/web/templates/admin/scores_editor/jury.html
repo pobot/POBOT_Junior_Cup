@@ -19,11 +19,11 @@
                 <div class="row">
                     <label class="control-label col-sm-5">&nbsp;</label>
                     <div class="row col-sm-6 col-md-6 col-lg-6">
-                    {% for hdr in ('Note globale',) %}
                         <div class="form-group col-sm-5">
-                            <label class="control-label text-left">{{ hdr }}</label>
+                            <label class="control-label text-left">
+                                Note globale <span style="font-weight: normal">(sur 20)</span>
+                            </label>
                         </div>
-                    {% end %}
                     </div>
                 </div>
                 {% for score in scores %}

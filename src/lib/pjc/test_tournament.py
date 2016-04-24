@@ -171,26 +171,26 @@ class TestTournament(TestCase):
         self.assertTupleEqual(status.research, (True, False, True, True, True))
 
     def test_get_global_result(self):
-        present_temas_count = self._tournament.team_count(present_only=True)
+        present_teams_count = self._tournament.team_count(present_only=True)
 
         print('* robotics rounds teams results : ')
         for i in xrange(1, 4):
             print("%d : %s" % (
-                i, self._tournament.get_robotics_round(i).get_results(present_temas_count)
+                i, self._tournament.get_robotics_round(i).get_results(present_teams_count)
             ))
         print('* robotics consolidated teams results :')
         print(self._tournament.get_robotics_results())
         print('* research teams results : ')
-        print(self._tournament.research_evaluations.get_results(present_temas_count))
+        print(self._tournament.research_evaluations.get_results(present_teams_count))
         print('* jury evaluation results : ')
-        print(self._tournament.jury_evaluations.get_results(present_temas_count))
+        print(self._tournament.jury_evaluations.get_results(present_teams_count))
         print('* teams bonus : ')
-        print(self._tournament._bonus.get_results(present_temas_count))
+        print(self._tournament._bonus.get_results(present_teams_count))
 
         res = self._tournament.get_final_ranking()
         print('* tournament final ranking :')
         print(res)
-        self.assertEqual(res, [(1, [1]), (2, [5]), (3, [3]), (4, [4])])
+        self.assertEqual(res, [(1, [1]), (2, [5]), (3, [4]), (4, [3])])
 
     def test_json_persistence(self):
         with file('/tmp/tournament.json', 'wt') as fp:
