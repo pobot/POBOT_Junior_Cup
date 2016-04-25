@@ -486,7 +486,7 @@ class Tournament(object):
 
     #: relative weights of the various parts of the tournament
     WEIGHT_ROBOTICS = WEIGHT_RESEARCH = 3
-    WEIGHT_JURY = 0     # no more used
+    WEIGHT_JURY = 1
     WEIGHT_BONUS = 1
 
     def __init__(self, robotics_score_types=None):

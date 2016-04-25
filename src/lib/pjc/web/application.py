@@ -102,15 +102,23 @@ class PJCWebApp(tornado.web.Application):
         self._client_sequences = {}
         self._tv_message = None
 
-        # try to load a previously saved tournament if any, or create a new one otherwise
         self._tournament = Tournament(self.ROBOTICS_ROUND_TYPES)
-        try:
-            self._load_tournament(self._tournament)
-        except IOError as e:
-            self.log.warn('... no previous tournament data found => initializing new one')
-            self._initialize_tournament(self._tournament)
+
+        # try to load a previously saved tournament if any, or create a new one otherwise
+        # (we check first that it is not from an older version of the event, based on the
+        # teams file)
+        tournament_file = os.path.join(self._data_home, self.TOURNAMENT_DATA_FILE)
+        if os.path.exists(tournament_file):
+            teams_mtime = os.stat(os.path.join(self._data_home, self.TEAMS_DATA_FILE)).st_mtime
+            if teams_mtime > os.stat(tournament_file).st_mtime:
+                self.log.warn('found a tournament file, but is older than teams => creating a new one')
+                self._initialize_tournament(self._tournament)
+            else:
+                self._load_tournament(self._tournament)
         else:
-            self.log.info('... done')
+            self.log.warn('... no previous tournament data found => creating a new one')
+            self._initialize_tournament(self._tournament)
+        self.log.info('tournament data initialized')
 
         super(PJCWebApp, self).__init__(self._handlers, **settings)
 
@@ -151,7 +159,10 @@ class PJCWebApp(tornado.web.Application):
             self.log.info('assigning tables and juries')
             tournament.assign_tables_and_juries()
 
-            self.log.info('... done')
+            self.log.info('... initialization complete')
+
+            self.save_tournament()
+
 
         else:
             self.log.warn('no planning file found in %s' % self._data_home)
@@ -161,6 +172,9 @@ class PJCWebApp(tornado.web.Application):
         return os.path.join(self._data_home, self.TOURNAMENT_DATA_FILE)
 
     def _load_tournament(self, tournament, silent=False):
+        teams_file = os.path.join(self._data_home, self.TEAMS_DATA_FILE)
+        team_file_mtime = os.stat(teams_file).st_mtime
+
         self.log.info('loading tournament from %s', self._tournament_file_path)
         with file(self._tournament_file_path, 'rb') as fp:
             tournament.deserialize(json.load(fp))
