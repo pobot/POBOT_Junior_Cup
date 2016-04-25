@@ -4,6 +4,8 @@ import json
 import logging
 import os
 import threading
+import signal
+
 import tornado.ioloop
 import tornado.web
 
@@ -256,11 +258,21 @@ class PJCWebApp(tornado.web.Application):
         """ Starts the application
         """
         self.listen(port)
-        try:
-            tornado.ioloop.IOLoop.instance().start()
-        except KeyboardInterrupt:
-            print # cosmetic to keep log messages nicely aligned
-            self.log.info('SIGTERM caught')
+
+        signal.signal(signal.SIGTERM, self.signals_handler)
+        signal.signal(signal.SIGINT, self.signals_handler)
+
+        self.log.info("server IO loop started")
+        tornado.ioloop.IOLoop.current().start()
+        self.log.info("server IO loop terminated")
+
+    def signals_handler(self, sig, frame):
+        self.log.info('Caught signal: %s', sig)
+        tornado.ioloop.IOLoop.instance().add_callback(self.shutdown)
+
+    def shutdown(self):
+        self.log.info('stopping server IOloop...')
+        tornado.ioloop.IOLoop.instance().stop()
 
 
 class Version(object):

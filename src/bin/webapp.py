@@ -81,4 +81,4 @@ if __name__ == '__main__':
         log.exception('unexpected error - aborting')
 
     else:
-        log.info('terminated')
+        log.info('normal termination')
