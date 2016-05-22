@@ -13,7 +13,7 @@ from reportlab.lib.units import inch
 from reportlab.lib.enums import *
 from reportlab.lib import colors
 
-from pjc.tournament import Tournament, TeamPlanning
+from pjc.tournament import Tournament, TeamPlanning, Grade
 
 __author__ = 'Eric Pascual'
 
@@ -613,6 +613,32 @@ def generate_signs(tournament, doc=None):
     return story
 
 
+def generate_teams_list(tournament, doc=None):
+    story = []
+
+    story.extend(PageHeader(title="Liste des équipes").get_story())
+
+    pw = doc.pagesize[0]
+    story.append(Table(
+        [
+            [
+                team.num, team.name, team.grade.label, team.school, "%s (%s)" % (team.city, team.department)
+            ]
+            for team in tournament.teams(present_only=False)
+        ],
+        style=[
+            ('FONTNAME', (0, 0), (-1, -1), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, -1), 10),
+            ('TOPPADDING', (0, 0), (-1, -1), 0.1 * inch),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 0.1 * inch),
+            ('ALIGN', (0, 0), (0, -1), 'RIGHT'),
+            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ]
+    ))
+
+    return story
+
+
 _generators = {
     'm': (generate_match_sheets, 'match sheets', 'match_sheets', portrait(A4)),
     'j': (generate_jury_sheets, 'jury sheets', 'jury_sheets', portrait(A4)),
@@ -620,6 +646,7 @@ _generators = {
     't': (generate_time_tables, 'time tables', 'time_tables', portrait(A4)),
     's': (generate_stand_labels, 'stand labels', 'stand_labels', portrait(A4)),
     'p': (generate_planning, 'planning', 'planning', landscape(A4)),
+    'l': (generate_teams_list, 'teams list', 'teams_list', portrait(A4)),
     'x': (generate_signs, 'signs', 'signs', landscape(A4)),
 }
 
@@ -674,12 +701,13 @@ if __name__ == '__main__':
             one letter codes representing the document types.
 
             Available documents are (document code given in parenthesis):
-                - (m) individual match sheets for score accounting
-                - (j) individual jury sheets for the presentation evaluations
                 - (a) individual approval sheets
-                - (t) individual time tables
+                - (j) individual jury sheets for the presentation evaluations
+                - (l) teams list
+                - (m) individual match sheets for score accounting
                 - (p) global planning
                 - (s) stand labels
+                - (t) individual time tables
                 - (x) signs for tables and jury rooms
         """),
         formatter_class=argparse.RawTextHelpFormatter
