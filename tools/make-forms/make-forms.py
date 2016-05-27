@@ -358,51 +358,6 @@ def generate_approval_sheets(tournament, **kwArgs):
     return generate_individual_sheet("Fiche d'homologation", tournament, generate_body)
 
 
-def generate_time_tables(tournament, **kwArgs):
-    def generate_body(story, team):
-        story.append(Table(
-            [
-                [
-                    'Epreuve %d' % (i + 1),
-                    match.time.strftime('%H:%M'),
-                    'Table',
-                    match.table
-                ] for i, match in enumerate(team.planning.matches)
-            ],
-            colWidths=[6.7 / 4 * inch] * 4,
-            style=default_table_style + [
-                ('BACKGROUND', (0, 0), (0, -1), cell_bkgnd_color),
-                ('BACKGROUND', (2, 0), (2, -1), cell_bkgnd_color),
-                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-                ('ALIGN', (0, 0), (0, -1), 'RIGHT'),
-                ('ALIGN', (2, 0), (2, -1), 'RIGHT'),
-            ]
-        ))
-
-        story.append(tables_spacer)
-
-        story.append(Table(
-            [
-                [
-                    'Exposé',
-                    team.planning.presentation.time.strftime('%H:%M'),
-                    'Jury',
-                    team.planning.presentation.jury
-                ]
-            ],
-            colWidths=[6.7 / 4 * inch] * 4,
-            style=default_table_style + [
-                ('BACKGROUND', (0, 0), (0, -1), cell_bkgnd_color),
-                ('BACKGROUND', (2, 0), (2, -1), cell_bkgnd_color),
-                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-                ('ALIGN', (0, 0), (0, -1), 'RIGHT'),
-                ('ALIGN', (2, 0), (2, -1), 'RIGHT'),
-            ]
-        ))
-
-    return generate_individual_sheet("Heures de passage", tournament, generate_body)
-
-
 def generate_stand_labels(tournament, **kwArgs):
     story = []
 
@@ -419,7 +374,9 @@ def generate_stand_labels(tournament, **kwArgs):
         fontName="Helvetica-Oblique",
         fontSize=40,
         wordWrap=False,
-        spaceBefore=0.3 * inch
+        spaceBefore=0.3 * inch,
+        leftIndent=-1 * inch,       # increase margins to avoid long team names wrapping
+        rightIndent=-1 * inch,
     )
 
     team_detail_style = ParagraphStyle(
@@ -429,18 +386,73 @@ def generate_stand_labels(tournament, **kwArgs):
         autoLeading='min',
     )
 
+    time_table_header_style = ParagraphStyle(
+        'label_time_table_header',
+        parent=cell_header,
+        fontSize=18,
+        alignment=TA_CENTER,
+        spaceAfter=0.3 * inch
+    )
+
+    def time_table(team):
+        return [
+            Paragraph("Heures de passage", time_table_header_style),
+            Table(
+                [
+                    [
+                        'Epreuve %d' % (i + 1),
+                        match.time.strftime('%H:%M'),
+                        'Table',
+                        match.table
+                    ] for i, match in enumerate(team.planning.matches)
+                ],
+                colWidths=[6.7 / 4 * inch] * 4,
+                style=default_table_style + [
+                    ('BACKGROUND', (0, 0), (0, -1), cell_bkgnd_color),
+                    ('BACKGROUND', (2, 0), (2, -1), cell_bkgnd_color),
+                    ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                    ('ALIGN', (0, 0), (0, -1), 'RIGHT'),
+                    ('ALIGN', (2, 0), (2, -1), 'RIGHT'),
+                ]
+            ),
+            tables_spacer,
+            Table(
+                [
+                    [
+                        'Exposé',
+                        team.planning.presentation.time.strftime('%H:%M'),
+                        'Jury',
+                        team.planning.presentation.jury
+                    ]
+                ],
+                colWidths=[6.7 / 4 * inch] * 4,
+                style=default_table_style + [
+                    ('BACKGROUND', (0, 0), (0, -1), cell_bkgnd_color),
+                    ('BACKGROUND', (2, 0), (2, -1), cell_bkgnd_color),
+                    ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                    ('ALIGN', (0, 0), (0, -1), 'RIGHT'),
+                    ('ALIGN', (2, 0), (2, -1), 'RIGHT'),
+                ]
+            )
+        ]
+
     page_header_story = PageHeader().get_story()
+
     for team in tournament.registered_teams:
         story.extend(page_header_story)
         story.extend([
-            Spacer(0, 1 * inch),
+            Spacer(0, .5 * inch),
             Paragraph("Equipe %d" % team.num, team_num_style),
             Paragraph(team.name, team_name_style),
-            Spacer(0, 1.5 * inch),
+            Spacer(0, .5 * inch),
             Paragraph(team.school or '<i>Equipe open</i>', team_detail_style),
             Paragraph(team.grade.orig, team_detail_style),
             Spacer(0, 0.3 * inch),
             Paragraph("%s (%02d)" % (team.city, int(team.department)), team_detail_style),
+            Spacer(0, 1.5 * inch)
+        ])
+        story.extend(time_table(team))
+        story.extend([
             PageBreak()
         ])
 
@@ -643,7 +655,6 @@ _generators = {
     'm': (generate_match_sheets, 'match sheets', 'match_sheets', portrait(A4)),
     'j': (generate_jury_sheets, 'jury sheets', 'jury_sheets', portrait(A4)),
     'a': (generate_approval_sheets, 'approval sheets', 'approval_sheets', portrait(A4)),
-    't': (generate_time_tables, 'time tables', 'time_tables', portrait(A4)),
     's': (generate_stand_labels, 'stand labels', 'stand_labels', portrait(A4)),
     'p': (generate_planning, 'planning', 'planning', landscape(A4)),
     'l': (generate_teams_list, 'teams list', 'teams_list', portrait(A4)),
